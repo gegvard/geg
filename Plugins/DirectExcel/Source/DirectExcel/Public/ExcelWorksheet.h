@@ -573,36 +573,40 @@ public: // === Batch write / пакетная запись (производит
 	 * Вызвать ОДИН раз перед массовой записью студентов.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
-		meta = (ToolTip = "Reserve hashmap capacity before bulk write. Pass Rows*Columns, e.g. 200*16."))
+		meta = (DisplayName = "Reserve Capacity", ToolTip = "Reserve hashmap capacity before bulk write. Pass Rows*Columns, e.g. 200*16."))
 		void ReserveCapacity(int32 estimatedCells);
 
 	/**
 	 * Записать целую строку строк за один вызов (вместо N раз SetStringAt).
 	 * Это главный способ избежать зависания Blueprint ForEach на 100+ студентах.
+	 * Важно для UE4.27 UHT: у TArray в UFUNCTION нельзя давать default = TArray<...>().
 	 */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
-		meta = (ToolTip = "Write one row of strings in a single native call."))
-		void WriteStringRow(int32 row = 1, int32 startColumn = 1, const TArray<FString>& values = TArray<FString>());
+		meta = (DisplayName = "Write String Row", ToolTip = "Write one row of strings in a single native call."))
+		void WriteStringRow(int32 row, int32 startColumn, const TArray<FString>& values);
 
-	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch")
-		void WriteIntRow(int32 row = 1, int32 startColumn = 1, const TArray<int32>& values = TArray<int32>());
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Int Row"))
+		void WriteIntRow(int32 row, int32 startColumn, const TArray<int32>& values);
 
-	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch")
-		void WriteFloatRow(int32 row = 1, int32 startColumn = 1, const TArray<float>& values = TArray<float>());
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Float Row"))
+		void WriteFloatRow(int32 row, int32 startColumn, const TArray<float>& values);
 
 	/**
 	 * Плоская матрица: values = row0col0, row0col1, ... row0colN, row1col0, ...
 	 * Один вызов на весь экспорт студентов.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
-		meta = (ToolTip = "Bulk write: flat array length must be RowCount*ColumnCount. One call for all students."))
+		meta = (DisplayName = "Write String Matrix", ToolTip = "Bulk write: flat array length must be RowCount*ColumnCount. One call for all students."))
 		void WriteStringMatrix(int32 startRow, int32 startColumn, int32 columnCount, const TArray<FString>& values);
 
 	/**
-	 * Смешанные типы в одной строке (string/int/float/date через FExcelVariant).
+	 * Смешанные типы в одной строке (string/int/date через FExcelVariant).
 	 */
-	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch")
-		void WriteVariantRow(int32 row = 1, int32 startColumn = 1, const TArray<FExcelVariant>& values = TArray<FExcelVariant>());
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Variant Row"))
+		void WriteVariantRow(int32 row, int32 startColumn, const TArray<FExcelVariant>& values);
 
 public: // === Beautify / оформление для экспорта (добавлено) ===
 

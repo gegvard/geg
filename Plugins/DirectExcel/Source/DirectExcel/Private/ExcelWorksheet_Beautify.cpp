@@ -12,6 +12,8 @@
 #include "xlnt/styles/number_format.hpp"
 #include "xlnt/styles/font.hpp"
 
+#include <cmath>
+
 // «Видимая» длина содержимого ячейки в символах.
 // Для дат — длина короткого формата (даты ужимаем заранее).
 // Для текста — число СИМВОЛОВ через FString (корректно для кириллицы).
@@ -56,7 +58,7 @@ static int32 DE_CellDisplayLen(const xlnt::cell& c, int32 dateLen)
 		const double v = c.value<double>();
 		if (FMath::IsNearlyZero(v)) { return 1; }
 		const double absV = FMath::Abs(v);
-		int32 digits = (absV >= 1.0) ? (int32)FMath::FloorToInt(FMath::LogX(10.0, absV)) + 1 : 1;
+		int32 digits = (absV >= 1.0) ? (int32)std::floor(std::log10(absV)) + 1 : 1;
 		digits += 3; // знак / дробная часть с запасом
 		return FMath::Clamp(digits, 1, 24);
 	}
@@ -99,18 +101,13 @@ void UExcelWorksheet::AutoFitColumns(float CharWidthFactor, float Padding, float
 	{
 		int32 maxLen = 0;
 
-		auto considerRow = [&](int32 row)
-		{
-			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
-			if (!mData.has_cell(ref)) { return; }
-			maxLen = FMath::Max(maxLen, DE_CellDisplayLen(mData.cell(ref), dateLen));
-		};
-
 		if (!bSample)
 		{
 			for (int32 row = firstDataRow; row <= highRow; ++row)
 			{
-				considerRow(row);
+				const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
+				if (!mData.has_cell(ref)) { continue; }
+				maxLen = FMath::Max(maxLen, DE_CellDisplayLen(mData.cell(ref), dateLen));
 			}
 		}
 		else
@@ -118,12 +115,16 @@ void UExcelWorksheet::AutoFitColumns(float CharWidthFactor, float Padding, float
 			const int32 headEnd = FMath::Min(highRow, firstDataRow + sampleHead - 1);
 			for (int32 row = firstDataRow; row <= headEnd; ++row)
 			{
-				considerRow(row);
+				const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
+				if (!mData.has_cell(ref)) { continue; }
+				maxLen = FMath::Max(maxLen, DE_CellDisplayLen(mData.cell(ref), dateLen));
 			}
 			const int32 tailStart = FMath::Max(headEnd + 1, highRow - sampleTail + 1);
 			for (int32 row = tailStart; row <= highRow; ++row)
 			{
-				considerRow(row);
+				const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
+				if (!mData.has_cell(ref)) { continue; }
+				maxLen = FMath::Max(maxLen, DE_CellDisplayLen(mData.cell(ref), dateLen));
 			}
 		}
 

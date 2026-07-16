@@ -4,6 +4,19 @@ UE 4.27 · плагин **DirectExcel** (обёртка над библиоте�
 
 ---
 
+## 0.1 Если плагин не компилируется
+
+1. Путь должен быть: `YourProject/Plugins/DirectExcel/DirectExcel.uplugin`
+2. Удали у плагина папки `Binaries` и `Intermediate` (если есть)
+3. В `.uproject` должен быть включён плагин `DataRegistry` (DirectExcel от него зависит)
+4. Правый клик по `.uproject` → **Generate Visual Studio project files** → Rebuild
+5. Скачай свежий ZIP ветки (после фикса UHT для `TArray`):  
+   https://github.com/gegvard/geg/archive/refs/heads/cursor/directexcel-batch-write-b5bb.zip
+
+Если снова ошибка — пришли **текст красной ошибки** из Output Log / Visual Studio (не только «не пошла»).
+
+---
+
 ## 0. Зависание / пропуски на 100+ студентах
 
 **Причина:** в Blueprint цикл `ForEach` + десятки `SetStringAt`/`SetFloatAt` на каждого студента (16 колонок × 100 = 1600+ вызовов) блокирует Game Thread. UE 4.27 рвёт «бесконечный» цикл → часть строк пропускается. `Save` внутри цикла и тяжёлый `BeautifyForExport` (полный AutoFit) усугубляют.
