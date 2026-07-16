@@ -31,6 +31,7 @@ enum class ExcelVariantType :uint8
 	String,
 	DateTime,
 	Array,
+	Float UMETA(DisplayName = "Float"),
 };
 
 

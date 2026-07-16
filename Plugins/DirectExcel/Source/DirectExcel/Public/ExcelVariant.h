@@ -21,11 +21,13 @@ public:
 	FExcelVariant() {}
 	FExcelVariant(bool value) :mType(ExcelVariantType::Bool),mBoolValue(value) {}
 	FExcelVariant(int32 value) :mType(ExcelVariantType::Int32),mIntValue(value) {}
+	FExcelVariant(float value) :mType(ExcelVariantType::Float),mFloatValue(value) {}
 	FExcelVariant(FString value) :mType(ExcelVariantType::String),mStringValue(value) {}
 	FExcelVariant(FDateTime value) :mType(ExcelVariantType::DateTime),mDateTimeValue(value) {}
 
 	FExcelVariant(TArray<bool> value);
 	FExcelVariant(TArray<int32> value);
+	FExcelVariant(TArray<float> value);
 	FExcelVariant(TArray<FString> value);
 	FExcelVariant(TArray<FDateTime> value);
 	FExcelVariant(TArray<FExcelVariant> value) :mType(ExcelVariantType::Array),mArrayValue(value) {}
@@ -36,6 +38,8 @@ public:
 	void SetBoolValue(bool val) { mBoolValue = val; }
 	int32 IntValue() const { return mIntValue; }
 	void SetIntValue(int32 val) { mIntValue = val; }
+	float FloatValue() const { return mFloatValue; }
+	void SetFloatValue(float val) { mFloatValue = val; }
 	FString StringValue() const { return mStringValue; }
 	void SetStringValue(FString val) { mStringValue = val; }
 	FDateTime DateTimeValue() const { return mDateTimeValue; }
@@ -47,6 +51,7 @@ private:
 	ExcelVariantType mType = ExcelVariantType::None;
 	bool mBoolValue = false;
 	int32 mIntValue = 0;
+	float mFloatValue = 0.f;
 	FString mStringValue;
 	FDateTime mDateTimeValue;
 	TArray<FExcelVariant> mArrayValue;
@@ -61,19 +66,23 @@ class DIRECTEXCEL_API UExcelVariantLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with Bool"))
 		static FExcelVariant MakeVariantWithBool(bool value) { return FExcelVariant(value); }
-	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with Int"))
 		static FExcelVariant MakeVariantWithInt(int32 value) { return FExcelVariant(value); }
-	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with Float"))
+		static FExcelVariant MakeVariantWithFloat(float value) { return FExcelVariant(value); }
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with String"))
 		static FExcelVariant MakeVariantWithString(FString value) { return FExcelVariant(value); }
-	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with Date Time"))
 		static FExcelVariant MakeVariantWithDateTime(FDateTime value) { return FExcelVariant(value); }
 
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static FExcelVariant MakeVariantWithBoolArray(TArray<bool> value) { return FExcelVariant(value); }
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static FExcelVariant MakeVariantWithIntArray(TArray<int32> value) { return FExcelVariant(value); }
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant", meta = (DisplayName = "Make Variant with Float Array"))
+		static FExcelVariant MakeVariantWithFloatArray(TArray<float> value) { return FExcelVariant(value); }
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static FExcelVariant MakeVariantWithStringArray(TArray<FString> value) { return FExcelVariant(value); }
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
@@ -89,6 +98,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static int32 ToInt(FExcelVariant value) { return value.mIntValue; }
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
+		static float ToFloat(FExcelVariant value) { return value.mFloatValue; }
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static FString ToString(FExcelVariant value) { return value.mStringValue; }
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|Variant")
 		static FDateTime ToDateTime(FExcelVariant value) { return value.mDateTimeValue; }
@@ -99,6 +110,8 @@ public:
 		static void SetBool(FExcelVariant target, bool value) { target.mBoolValue = value; target.mType = ExcelVariantType::Bool; }
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Variant")
 		static void SetInt(FExcelVariant target, int32 value) { target.mIntValue = value; target.mType = ExcelVariantType::Int32; }
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Variant")
+		static void SetFloat(FExcelVariant target, float value) { target.mFloatValue = value; target.mType = ExcelVariantType::Float; }
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Variant")
 		static void SetString(FExcelVariant target, FString value) { target.mStringValue = value; target.mType = ExcelVariantType::String; }
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Variant")

@@ -100,6 +100,13 @@ xlnt::variant ToXlntVariant(const FExcelVariant& value)
 		return xlnt::variant(value.BoolValue());
 	case ExcelVariantType::Int32:
 		return xlnt::variant(value.IntValue());
+	case ExcelVariantType::Float:
+	{
+		// xlnt::variant не принимает double — для document properties пишем как строку.
+		const FString str = FString::SanitizeFloat(value.FloatValue());
+		const std::string str2 = TCHAR_TO_UTF8(*str);
+		return xlnt::variant(str2);
+	}
 	case ExcelVariantType::String:
 	{
 		FString str = value.StringValue();

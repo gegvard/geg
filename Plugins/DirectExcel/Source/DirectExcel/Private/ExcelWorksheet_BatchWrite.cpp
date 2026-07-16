@@ -34,6 +34,9 @@ namespace DirectExcelBatch
 		case ExcelVariantType::Int32:
 			c.value(value.IntValue());
 			break;
+		case ExcelVariantType::Float:
+			c.value((double)value.FloatValue());
+			break;
 		case ExcelVariantType::String:
 		{
 			const std::string str = TCHAR_TO_UTF8(*value.StringValue());

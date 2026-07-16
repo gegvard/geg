@@ -22,6 +22,16 @@ FExcelVariant::FExcelVariant(TArray<int32> value)
 }
 
 
+FExcelVariant::FExcelVariant(TArray<float> value)
+	:mType(ExcelVariantType::Array)
+{
+	for (float v : value)
+	{
+		mArrayValue.Emplace(v);
+	}
+}
+
+
 FExcelVariant::FExcelVariant(TArray<FString> value)
 	:mType(ExcelVariantType::Array)
 {
