@@ -40,7 +40,32 @@ Create/Open Workbook → Get Sheet
 | **Write String Row** | одна строка студента = 1 вызов вместо 16 |
 | **Write String Matrix** | весь список студентов = 1 вызов (плоский массив) |
 | **Write Int/Float Row** | числовые строки |
-| **Write Variant Row** | смешанные типы в строке |
+| **Write Variant Row** | смешанные типы плотным массивом |
+| **Write Variant Map** | разреженная строка: ключ Map = **номер колонки Excel** |
+| **Append Struct Fields To Variant Map** | struct → Map; **Start/End = номера колонок** (не индексы массива) |
+
+### Рекомендуемый паттерн (колонки 1–20, payments@30, services@50)
+
+```
+Clear Map (Column → Excel Variant)
+
+Append Struct Fields To Variant Map
+  Start Column = 1
+  End Column   = 20
+  Struct       = PersonData
+  → ColumnValues (map)
+
+ForEach Payments
+  Map Add: column = 30 + Index*N + offset → Make Variant …
+
+ForEach Services
+  Map Add: column = 50 + Index*N + offset → Make Variant …
+
+Write Variant Map (Row, ColumnValues)
+Beautify → Save (один раз)
+```
+
+Пустые колонки 21–29 и 31–49 указывать не нужно — Map пишет только заданные ключи.
 
 Не вызывайте `Cell At` → `Set String` в цикле: каждый `Cell At` создаёт `UObject` и сильно тормозит.
 

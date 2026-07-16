@@ -159,3 +159,28 @@ void UExcelWorksheet::WriteVariantRow(int32 row, int32 startColumn, const TArray
 		DirectExcelBatch::WriteVariantToCell(mData, startColumn + i, row, values[i]);
 	}
 }
+
+void UExcelWorksheet::WriteVariantMap(int32 row, const TMap<int32, FExcelVariant>& columnValues)
+{
+	if (mData == nullptr || columnValues.Num() == 0 || row < 1)
+	{
+		return;
+	}
+
+	mData.reserve((std::size_t)FMath::Max(row * columnValues.Num(), columnValues.Num()));
+
+	for (const TPair<int32, FExcelVariant>& pair : columnValues)
+	{
+		const int32 column = pair.Key;
+		if (column < 1)
+		{
+			UE_LOG(LogDirectExcel, Warning, TEXT("WriteVariantMap: skip invalid column %d (must be >= 1)"), column);
+			continue;
+		}
+		if (pair.Value.Type() == ExcelVariantType::None)
+		{
+			continue;
+		}
+		DirectExcelBatch::WriteVariantToCell(mData, column, row, pair.Value);
+	}
+}

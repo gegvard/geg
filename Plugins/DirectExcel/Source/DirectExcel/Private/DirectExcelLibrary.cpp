@@ -245,3 +245,165 @@ DEFINE_FUNCTION(UDirectExcelLibrary::execReadItemAtCell)
 	*(bool*)RESULT_PARAM = result;
 }
 
+bool UDirectExcelLibrary::TryPropertyToExcelVariant(const FProperty* Property, const void* StructData, FExcelVariant& OutVariant)
+{
+	if (Property == nullptr || StructData == nullptr)
+	{
+		return false;
+	}
+
+	// Пропускаем контейнеры — их пишут отдельными циклами в нужные колонки (30 / 50).
+	if (Property->IsA<FArrayProperty>() || Property->IsA<FMapProperty>() || Property->IsA<FSetProperty>())
+	{
+		return false;
+	}
+
+	if (const FBoolProperty* BoolProp = CastField<FBoolProperty>(Property))
+	{
+		OutVariant = FExcelVariant(BoolProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FIntProperty* IntProp = CastField<FIntProperty>(Property))
+	{
+		OutVariant = FExcelVariant(IntProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FInt64Property* Int64Prop = CastField<FInt64Property>(Property))
+	{
+		OutVariant = FExcelVariant((int32)Int64Prop->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FByteProperty* ByteProp = CastField<FByteProperty>(Property))
+	{
+		// Enum-as-byte или обычный byte
+		OutVariant = FExcelVariant((int32)ByteProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(Property))
+	{
+		const FNumericProperty* Underlying = EnumProp->GetUnderlyingProperty();
+		const void* ValuePtr = EnumProp->ContainerPtrToValuePtr<void>(StructData);
+		OutVariant = FExcelVariant((int32)Underlying->GetSignedIntPropertyValue(ValuePtr));
+		return true;
+	}
+	if (const FFloatProperty* FloatProp = CastField<FFloatProperty>(Property))
+	{
+		OutVariant = FExcelVariant(FloatProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FDoubleProperty* DoubleProp = CastField<FDoubleProperty>(Property))
+	{
+		OutVariant = FExcelVariant((float)DoubleProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FStrProperty* StrProp = CastField<FStrProperty>(Property))
+	{
+		OutVariant = FExcelVariant(StrProp->GetPropertyValue_InContainer(StructData));
+		return true;
+	}
+	if (const FNameProperty* NameProp = CastField<FNameProperty>(Property))
+	{
+		OutVariant = FExcelVariant(NameProp->GetPropertyValue_InContainer(StructData).ToString());
+		return true;
+	}
+	if (const FTextProperty* TextProp = CastField<FTextProperty>(Property))
+	{
+		OutVariant = FExcelVariant(TextProp->GetPropertyValue_InContainer(StructData).ToString());
+		return true;
+	}
+	if (const FStructProperty* StructProp = CastField<FStructProperty>(Property))
+	{
+		if (StructProp->Struct == TBaseStructure<FDateTime>::Get())
+		{
+			const FDateTime* DatePtr = StructProp->ContainerPtrToValuePtr<FDateTime>(StructData);
+			OutVariant = FExcelVariant(DatePtr ? *DatePtr : FDateTime());
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(
+	int32 StartColumn,
+	int32 EndColumn,
+	const UScriptStruct* StructType,
+	const void* StructData,
+	TMap<int32, FExcelVariant>& ColumnValues)
+{
+	if (StructType == nullptr || StructData == nullptr)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: struct is null."));
+		return 0;
+	}
+	if (StartColumn < 1 || EndColumn < StartColumn)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: invalid column range %d..%d (1-based, End>=Start)."), StartColumn, EndColumn);
+		return 0;
+	}
+
+	int32 column = StartColumn;
+	int32 written = 0;
+
+	for (TFieldIterator<FProperty> It(StructType, EFieldIteratorFlags::IncludeSuper); It && column <= EndColumn; ++It)
+	{
+		const FProperty* Property = *It;
+		if (Property == nullptr)
+		{
+			continue;
+		}
+
+		// Массивы/Map пропускаем, колонку НЕ сдвигаем — иначе «поедут» номера.
+		if (Property->IsA<FArrayProperty>() || Property->IsA<FMapProperty>() || Property->IsA<FSetProperty>())
+		{
+			continue;
+		}
+
+		FExcelVariant variant;
+		if (!TryPropertyToExcelVariant(Property, StructData, variant))
+		{
+			UE_LOG(LogDirectExcel, Verbose, TEXT("AppendStructFieldsToVariantMap: skip unsupported field '%s'"), *Property->GetName());
+			continue;
+		}
+
+		ColumnValues.Add(column, variant);
+		++written;
+		++column;
+	}
+
+	return written;
+}
+
+DEFINE_FUNCTION(UDirectExcelLibrary::execAppendStructFieldsToVariantMap)
+{
+	P_GET_PROPERTY(FIntProperty, StartColumn);
+	P_GET_PROPERTY(FIntProperty, EndColumn);
+
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FStructProperty>(nullptr);
+	void* StructDataPtr = Stack.MostRecentPropertyAddress;
+	FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
+	UScriptStruct* StructType = StructProp ? StructProp->Struct : nullptr;
+
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FMapProperty>(nullptr);
+	void* MapDataPtr = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	int32 written = 0;
+	P_NATIVE_BEGIN;
+	if (MapDataPtr != nullptr)
+	{
+		TMap<int32, FExcelVariant>* ColumnValues = (TMap<int32, FExcelVariant>*)MapDataPtr;
+		written = AppendStructFieldsToVariantMapRaw(StartColumn, EndColumn, StructType, StructDataPtr, *ColumnValues);
+	}
+	else
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: ColumnValues map is null."));
+	}
+	P_NATIVE_END;
+
+	*(int32*)RESULT_PARAM = written;
+}
+

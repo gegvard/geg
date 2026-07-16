@@ -608,6 +608,16 @@ public: // === Batch write / пакетная запись (производит
 		meta = (DisplayName = "Write Variant Row"))
 		void WriteVariantRow(int32 row, int32 startColumn, const TArray<FExcelVariant>& values);
 
+	/**
+	 * Разреженная запись строки: ключ Map = номер колонки Excel (1-based),
+	 * значение = Excel Variant. Пустые колонки между 20/30/50 указывать не нужно.
+	 * Пример: 1→ФИО, 30→payment, 50→service.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Variant Map",
+			ToolTip = "Write sparse row: Map key = Excel column (1-based), value = Variant. No padding for gaps."))
+		void WriteVariantMap(int32 row, const TMap<int32, FExcelVariant>& columnValues);
+
 public: // === Beautify / оформление для экспорта (добавлено) ===
 
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Beautify",
