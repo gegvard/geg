@@ -184,3 +184,16 @@ void UExcelWorksheet::WriteVariantMap(int32 row, const TMap<int32, FExcelVariant
 		DirectExcelBatch::WriteVariantToCell(mData, column, row, pair.Value);
 	}
 }
+
+void UExcelWorksheet::WriteVariantAt(int32 row, int32 column, const FExcelVariant& value)
+{
+	if (mData == nullptr || row < 1 || column < 1)
+	{
+		return;
+	}
+	if (value.Type() == ExcelVariantType::None)
+	{
+		return;
+	}
+	DirectExcelBatch::WriteVariantToCell(mData, column, row, value);
+}

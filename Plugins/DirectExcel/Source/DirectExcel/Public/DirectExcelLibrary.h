@@ -51,20 +51,35 @@ public:
 	DECLARE_FUNCTION(execReadItemAtCell);
 
 	/**
-	 * Кладёт поля struct в Map: ключ = номер колонки Excel.
-	 * StartColumn / EndColumn — номера колонок (1-based, включительно).
-	 * Поля идут по порядку объявления в struct → StartColumn, StartColumn+1, ... до EndColumn.
-	 * Массивы/Map/Set (Payments, Services) пропускаются — их пишите отдельным ForEach в нужные колонки.
+	 * Лучший поток экспорта:
+	 * StartIndex/EndIndex — индексы полей struct (0-based, порядок объявления / как пины Break).
+	 * StartColumn/EndColumn — номера колонок Excel (1-based, включительно).
+	 * Поле StartIndex → колонка StartColumn, следующее подходящее поле → +1 колонка, … до EndColumn.
+	 * Массивы/Map/Set (Payments, Services) пропускаются без сдвига колонки — пишите их ForEach в 30/50.
+	 * Потом: Write Variant Map(Row, ColumnValues).
 	 */
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet|Batch",
 		meta = (DisplayName = "Append Struct Fields To Variant Map",
 			CustomStructureParam = "Struct",
 			AutoCreateRefTerm = "ColumnValues",
-			ToolTip = "StartColumn/EndColumn are Excel column numbers (1-based). Struct fields map in declaration order."))
-		static int32 AppendStructFieldsToVariantMap(int32 StartColumn, int32 EndColumn, const FTableRowBase& Struct, UPARAM(ref) TMap<int32, FExcelVariant>& ColumnValues) { return 0; }
+			ToolTip = "StartIndex/EndIndex = struct field indices (0-based). StartColumn/EndColumn = Excel columns (1-based)."))
+		static int32 AppendStructFieldsToVariantMap(
+			int32 StartIndex,
+			int32 EndIndex,
+			int32 StartColumn,
+			int32 EndColumn,
+			const FTableRowBase& Struct,
+			UPARAM(ref) TMap<int32, FExcelVariant>& ColumnValues) { return 0; }
 	DECLARE_FUNCTION(execAppendStructFieldsToVariantMap);
 
-	static int32 AppendStructFieldsToVariantMapRaw(int32 StartColumn, int32 EndColumn, const UScriptStruct* StructType, const void* StructData, TMap<int32, FExcelVariant>& ColumnValues);
+	static int32 AppendStructFieldsToVariantMapRaw(
+		int32 StartIndex,
+		int32 EndIndex,
+		int32 StartColumn,
+		int32 EndColumn,
+		const UScriptStruct* StructType,
+		const void* StructData,
+		TMap<int32, FExcelVariant>& ColumnValues);
 
 private:
 	static FName GetPropertyColumnName(const FProperty& property);

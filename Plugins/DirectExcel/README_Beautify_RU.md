@@ -44,28 +44,36 @@ Create/Open Workbook → Get Sheet
 | **Write Variant Map** | разреженная строка: ключ Map = **номер колонки Excel** |
 | **Append Struct Fields To Variant Map** | struct → Map; **Start/End = номера колонок** (не индексы массива) |
 
-### Рекомендуемый паттерн (колонки 1–20, payments@30, services@50)
+### Лучший поток (колонки 1–20, payments@30, services@50)
 
 ```
-Clear Map (Column → Excel Variant)
+Clear EVM   // Map<int, Excel Variant>
 
 Append Struct Fields To Variant Map
-  Start Column = 1
+  Start Index  = 0      // первое поле struct
+  End Index    = 19     // 20-е поле (0-based)
+  Start Column = 1      // Excel колонка
   End Column   = 20
   Struct       = PersonData
-  → ColumnValues (map)
+  Column Values = EVM
 
 ForEach Payments
-  Map Add: column = 30 + Index*N + offset → Make Variant …
+  Map Add EVM: Key = 30 + Index*FieldsPerPayment + offset, Value = Make Variant …
 
 ForEach Services
-  Map Add: column = 50 + Index*N + offset → Make Variant …
+  Map Add EVM: Key = 50 + Index*FieldsPerService + offset, Value = Make Variant …
 
-Write Variant Map (Row, ColumnValues)
-Beautify → Save (один раз)
+Write Variant Map
+  Row = …
+  Column Values = EVM
+
+Beautify → Save (один раз в конце)
 ```
 
-Пустые колонки 21–29 и 31–49 указывать не нужно — Map пишет только заданные ключи.
+- `Start Index` / `End Index` — линии/поля struct (0, 1, 2…)
+- `Start Column` / `End Column` — номера колонок Excel (1, 2, … 20)
+- Пустые 21–29 и дырки до 50 указывать не нужно
+- `Write Variant At` — только точечно, не для всего экспорта
 
 Не вызывайте `Cell At` → `Set String` в цикле: каждый `Cell At` создаёт `UObject` и сильно тормозит.
 

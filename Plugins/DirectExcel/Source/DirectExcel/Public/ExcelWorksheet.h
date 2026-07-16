@@ -618,6 +618,11 @@ public: // === Batch write / пакетная запись (производит
 			ToolTip = "Write sparse row: Map key = Excel column (1-based), value = Variant. No padding for gaps."))
 		void WriteVariantMap(int32 row, const TMap<int32, FExcelVariant>& columnValues);
 
+	/** Одна ячейка (точечно). Для массового экспорта используйте Write Variant Map. */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Variant At"))
+		void WriteVariantAt(int32 row, int32 column, const FExcelVariant& value);
+
 public: // === Beautify / оформление для экспорта (добавлено) ===
 
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Beautify",

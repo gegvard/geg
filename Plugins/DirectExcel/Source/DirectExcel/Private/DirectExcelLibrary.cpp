@@ -325,6 +325,8 @@ bool UDirectExcelLibrary::TryPropertyToExcelVariant(const FProperty* Property, c
 }
 
 int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(
+	int32 StartIndex,
+	int32 EndIndex,
 	int32 StartColumn,
 	int32 EndColumn,
 	const UScriptStruct* StructType,
@@ -336,24 +338,48 @@ int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(
 		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: struct is null."));
 		return 0;
 	}
+	if (StartIndex < 0 || EndIndex < StartIndex)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: invalid field index range %d..%d (0-based, End>=Start)."), StartIndex, EndIndex);
+		return 0;
+	}
 	if (StartColumn < 1 || EndColumn < StartColumn)
 	{
 		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldsToVariantMap: invalid column range %d..%d (1-based, End>=Start)."), StartColumn, EndColumn);
 		return 0;
 	}
 
+	const int32 indexSpan = EndIndex - StartIndex;
+	const int32 columnSpan = EndColumn - StartColumn;
+	if (indexSpan != columnSpan)
+	{
+		UE_LOG(LogDirectExcel, Warning,
+			TEXT("AppendStructFieldsToVariantMap: index span (%d..%d) != column span (%d..%d); will stop at the shorter range."),
+			StartIndex, EndIndex, StartColumn, EndColumn);
+	}
+
+	int32 fieldIndex = 0;
 	int32 column = StartColumn;
 	int32 written = 0;
 
-	for (TFieldIterator<FProperty> It(StructType, EFieldIteratorFlags::IncludeSuper); It && column <= EndColumn; ++It)
+	for (TFieldIterator<FProperty> It(StructType, EFieldIteratorFlags::IncludeSuper); It; ++It, ++fieldIndex)
 	{
+		if (fieldIndex < StartIndex)
+		{
+			continue;
+		}
+		if (fieldIndex > EndIndex || column > EndColumn)
+		{
+			break;
+		}
+
 		const FProperty* Property = *It;
 		if (Property == nullptr)
 		{
 			continue;
 		}
 
-		// Массивы/Map пропускаем, колонку НЕ сдвигаем — иначе «поедут» номера.
+		// Массивы/Map в диапазоне индексов: пропускаем поле, колонку НЕ сдвигаем.
 		if (Property->IsA<FArrayProperty>() || Property->IsA<FMapProperty>() || Property->IsA<FSetProperty>())
 		{
 			continue;
@@ -362,7 +388,7 @@ int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(
 		FExcelVariant variant;
 		if (!TryPropertyToExcelVariant(Property, StructData, variant))
 		{
-			UE_LOG(LogDirectExcel, Verbose, TEXT("AppendStructFieldsToVariantMap: skip unsupported field '%s'"), *Property->GetName());
+			UE_LOG(LogDirectExcel, Verbose, TEXT("AppendStructFieldsToVariantMap: skip unsupported field [%d] '%s'"), fieldIndex, *Property->GetName());
 			continue;
 		}
 
@@ -376,6 +402,8 @@ int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(
 
 DEFINE_FUNCTION(UDirectExcelLibrary::execAppendStructFieldsToVariantMap)
 {
+	P_GET_PROPERTY(FIntProperty, StartIndex);
+	P_GET_PROPERTY(FIntProperty, EndIndex);
 	P_GET_PROPERTY(FIntProperty, StartColumn);
 	P_GET_PROPERTY(FIntProperty, EndColumn);
 
@@ -396,7 +424,7 @@ DEFINE_FUNCTION(UDirectExcelLibrary::execAppendStructFieldsToVariantMap)
 	if (MapDataPtr != nullptr)
 	{
 		TMap<int32, FExcelVariant>* ColumnValues = (TMap<int32, FExcelVariant>*)MapDataPtr;
-		written = AppendStructFieldsToVariantMapRaw(StartColumn, EndColumn, StructType, StructDataPtr, *ColumnValues);
+		written = AppendStructFieldsToVariantMapRaw(StartIndex, EndIndex, StartColumn, EndColumn, StructType, StructDataPtr, *ColumnValues);
 	}
 	else
 	{
