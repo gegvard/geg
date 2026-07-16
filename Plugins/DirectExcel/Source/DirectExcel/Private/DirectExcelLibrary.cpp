@@ -435,3 +435,94 @@ DEFINE_FUNCTION(UDirectExcelLibrary::execAppendStructFieldsToVariantMap)
 	*(int32*)RESULT_PARAM = written;
 }
 
+bool UDirectExcelLibrary::AppendStructFieldToVariantMapRaw(
+	int32 FieldIndex,
+	int32 Column,
+	const UScriptStruct* StructType,
+	const void* StructData,
+	TMap<int32, FExcelVariant>& ColumnValues)
+{
+	if (StructType == nullptr || StructData == nullptr)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: struct is null."));
+		return false;
+	}
+	if (FieldIndex < 0)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: FieldIndex %d is invalid (need >= 0)."), FieldIndex);
+		return false;
+	}
+	if (Column < 1)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: Column %d is invalid (need >= 1)."), Column);
+		return false;
+	}
+
+	int32 fieldIndex = 0;
+	for (TFieldIterator<FProperty> It(StructType, EFieldIteratorFlags::IncludeSuper); It; ++It, ++fieldIndex)
+	{
+		if (fieldIndex != FieldIndex)
+		{
+			continue;
+		}
+
+		const FProperty* Property = *It;
+		if (Property == nullptr)
+		{
+			return false;
+		}
+
+		if (Property->IsA<FArrayProperty>() || Property->IsA<FMapProperty>() || Property->IsA<FSetProperty>())
+		{
+			UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: field [%d] '%s' is an array/map/set — skip."), FieldIndex, *Property->GetName());
+			return false;
+		}
+
+		FExcelVariant variant;
+		if (!TryPropertyToExcelVariant(Property, StructData, variant))
+		{
+			UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: unsupported field [%d] '%s'."), FieldIndex, *Property->GetName());
+			return false;
+		}
+
+		ColumnValues.Add(Column, variant);
+		return true;
+	}
+
+	UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: FieldIndex %d out of range for struct '%s'."), FieldIndex, *StructType->GetName());
+	return false;
+}
+
+DEFINE_FUNCTION(UDirectExcelLibrary::execAppendStructFieldToVariantMap)
+{
+	P_GET_PROPERTY(FIntProperty, FieldIndex);
+	P_GET_PROPERTY(FIntProperty, Column);
+
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FStructProperty>(nullptr);
+	void* StructDataPtr = Stack.MostRecentPropertyAddress;
+	FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
+	UScriptStruct* StructType = StructProp ? StructProp->Struct : nullptr;
+
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FMapProperty>(nullptr);
+	void* MapDataPtr = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	bool bOk = false;
+	P_NATIVE_BEGIN;
+	if (MapDataPtr != nullptr)
+	{
+		TMap<int32, FExcelVariant>* ColumnValues = (TMap<int32, FExcelVariant>*)MapDataPtr;
+		bOk = AppendStructFieldToVariantMapRaw(FieldIndex, Column, StructType, StructDataPtr, *ColumnValues);
+	}
+	else
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("AppendStructFieldToVariantMap: ColumnValues map is null."));
+	}
+	P_NATIVE_END;
+
+	*(bool*)RESULT_PARAM = bOk;
+}
+

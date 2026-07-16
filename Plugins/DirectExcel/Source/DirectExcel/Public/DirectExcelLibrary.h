@@ -72,11 +72,34 @@ public:
 			UPARAM(ref) TMap<int32, FExcelVariant>& ColumnValues) { return 0; }
 	DECLARE_FUNCTION(execAppendStructFieldsToVariantMap);
 
+	/**
+	 * Одна линия struct → одна колонка Excel.
+	 * Field Index — 0-based номер поля в struct; Column — номер колонки (1-based).
+	 */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Append Struct Field To Variant Map",
+			CustomStructureParam = "Struct",
+			AutoCreateRefTerm = "ColumnValues",
+			ToolTip = "FieldIndex = struct field (0-based). Column = Excel column (1-based)."))
+		static bool AppendStructFieldToVariantMap(
+			int32 FieldIndex,
+			int32 Column,
+			const FTableRowBase& Struct,
+			UPARAM(ref) TMap<int32, FExcelVariant>& ColumnValues) { return false; }
+	DECLARE_FUNCTION(execAppendStructFieldToVariantMap);
+
 	static int32 AppendStructFieldsToVariantMapRaw(
 		int32 StartIndex,
 		int32 EndIndex,
 		int32 StartColumn,
 		int32 EndColumn,
+		const UScriptStruct* StructType,
+		const void* StructData,
+		TMap<int32, FExcelVariant>& ColumnValues);
+
+	static bool AppendStructFieldToVariantMapRaw(
+		int32 FieldIndex,
+		int32 Column,
 		const UScriptStruct* StructType,
 		const void* StructData,
 		TMap<int32, FExcelVariant>& ColumnValues);

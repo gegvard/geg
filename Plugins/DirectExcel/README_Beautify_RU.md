@@ -72,6 +72,7 @@ Beautify → Save (один раз в конце)
 
 - `Start Index` / `End Index` — линии/поля struct (0, 1, 2…)
 - `Start Column` / `End Column` — номера колонок Excel (1, 2, … 20)
+- Одна пара: **Append Struct Field To Variant Map** (`Field Index` + `Column`)
 - Пустые 21–29 и дырки до 50 указывать не нужно
 - `Write Variant At` — только точечно, не для всего экспорта
 
