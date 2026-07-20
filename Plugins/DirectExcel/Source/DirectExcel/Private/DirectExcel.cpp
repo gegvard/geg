@@ -14,7 +14,7 @@ void FDirectExcelModule::StartupModule()
 	mRowNameResolver = MakeShareable(new FExcelRowNameResolver());
 	FDataRegistryResolverScope::RegisterGlobalResolver(mRowNameResolver);
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.1-BATCH-20260720 (WriteVariantMap + Desktop fix + RowStruct init). If you do not see this line — old DLL."));
+	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.2-BATCH-20260720 (WriteStructArray + reserve fix). If you do not see this line — old DLL."));
 }
 
 void FDirectExcelModule::ShutdownModule()

@@ -9,6 +9,10 @@
 #include "Engine/DataTable.h"
 #include "ExcelCellReference.h"
 #include "DirectExcelLibrary.generated.h"
+
+class FArrayProperty;
+class UExcelWorksheet;
+
 /**
 * Helper functions to load/save excel file
 */
@@ -98,6 +102,24 @@ public:
 			bool bOverwrite = true,
 			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
 			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute);
+
+public:
+	/**
+	 * САМЫЙ БЫСТРЫЙ экспорт: пишет ВЕСЬ массив структур за один нативный вызов.
+	 * Никаких нод/рефлексии на строку — раскладка полей считается один раз.
+	 * Items — массив ЛЮБ�ой структуры (wildcard). Поля идут слева направо начиная с StartColumn.
+	 * Массивы/Map/Set внутри структуры пропускаются (Payments/Services пишите отдельно).
+	 * Возвращает число записанных строк.
+	 * Порядок: Load/Create → Write Struct Array → (payments/services при нужде) → Beautify → Save (один раз).
+	 */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet|Batch",
+		meta = (DisplayName = "Write Struct Array",
+			ArrayParm = "Items",
+			ToolTip = "FAST: write whole struct array in ONE native call. Fields map left->right from StartColumn. Arrays/Maps inside are skipped."))
+		static int32 WriteStructArray(UExcelWorksheet* sheet, int32 startRow, int32 startColumn, const TArray<int32>& Items) { return 0; }
+	DECLARE_FUNCTION(execWriteStructArray);
+
+	static int32 WriteStructArrayRaw(UExcelWorksheet* sheet, int32 startRow, int32 startColumn, const UScriptStruct* structType, FArrayProperty* arrayProp, void* arrayAddr);
 
 public: 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet", meta = (DisplayName = "ReadStructAtRowIndex", CustomStructureParam = "OutItem"))

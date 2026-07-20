@@ -1,6 +1,7 @@
 // Copyright 2018 Jianzhao Fu. All Rights Reserved.
 #include "DirectExcelLibrary.h"
 #include "ExcelWorkbook.h"
+#include "ExcelWorksheet.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
 #include "LogTypes.h"
@@ -64,7 +65,7 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDirectExcelVersion()
 {
-	return TEXT("3.4.1-BATCH-20260720");
+	return TEXT("3.4.2-BATCH-20260720");
 }
 
 FString UDirectExcelLibrary::GetDesktopPath()
@@ -530,6 +531,110 @@ bool UDirectExcelLibrary::TryPropertyToExcelVariant(const FProperty* Property, c
 	}
 
 	return false;
+}
+
+int32 UDirectExcelLibrary::WriteStructArrayRaw(
+	UExcelWorksheet* sheet,
+	int32 startRow,
+	int32 startColumn,
+	const UScriptStruct* structType,
+	FArrayProperty* arrayProp,
+	void* arrayAddr)
+{
+	if (sheet == nullptr || structType == nullptr || arrayProp == nullptr || arrayAddr == nullptr)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("WriteStructArray: null sheet/struct/array."));
+		return 0;
+	}
+	if (startRow < 1 || startColumn < 1)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("WriteStructArray: startRow/startColumn must be >= 1."));
+		return 0;
+	}
+
+	FScriptArrayHelper Helper(arrayProp, arrayAddr);
+	const int32 count = Helper.Num();
+	if (count == 0)
+	{
+		return 0;
+	}
+
+	// Раскладка полей считается ОДИН раз (а не на каждую строку).
+	TArray<const FProperty*> Props;
+	for (TFieldIterator<FProperty> It(structType, EFieldIteratorFlags::IncludeSuper); It; ++It)
+	{
+		const FProperty* Property = *It;
+		if (Property == nullptr)
+		{
+			continue;
+		}
+		if (Property->IsA<FArrayProperty>() || Property->IsA<FMapProperty>() || Property->IsA<FSetProperty>())
+		{
+			continue; // вложенные массивы/Map (payments/services) пишутся отдельно
+		}
+		Props.Add(Property);
+	}
+
+	// Резервируем строки один раз.
+	sheet->ReserveCapacity(startRow + count);
+
+	int32 rowsWritten = 0;
+	for (int32 i = 0; i < count; ++i)
+	{
+		const void* elem = Helper.GetRawPtr(i);
+		int32 column = startColumn;
+		for (const FProperty* Property : Props)
+		{
+			FExcelVariant variant;
+			if (TryPropertyToExcelVariant(Property, elem, variant))
+			{
+				sheet->WriteVariantAt(startRow + i, column, variant);
+				++column;
+			}
+		}
+		++rowsWritten;
+	}
+
+	UE_LOG(LogDirectExcel, Log, TEXT("WriteStructArray: wrote %d rows, %d columns each (from row %d, col %d)."),
+		rowsWritten, Props.Num(), startRow, startColumn);
+	return rowsWritten;
+}
+
+DEFINE_FUNCTION(UDirectExcelLibrary::execWriteStructArray)
+{
+	P_GET_OBJECT(UExcelWorksheet, sheet);
+	P_GET_PROPERTY(FIntProperty, startRow);
+	P_GET_PROPERTY(FIntProperty, startColumn);
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.MostRecentPropertyAddress = nullptr;
+	Stack.StepCompiledIn<FArrayProperty>(nullptr);
+	void* ArrayAddr = Stack.MostRecentPropertyAddress;
+	FArrayProperty* ArrayProp = CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+	P_FINISH;
+
+	int32 written = 0;
+	P_NATIVE_BEGIN;
+	if (ArrayProp != nullptr && ArrayAddr != nullptr)
+	{
+		FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProp->Inner);
+		if (InnerStruct != nullptr && InnerStruct->Struct != nullptr)
+		{
+			written = WriteStructArrayRaw(sheet, startRow, startColumn, InnerStruct->Struct, ArrayProp, ArrayAddr);
+		}
+		else
+		{
+			UE_LOG(LogDirectExcel, Warning, TEXT("WriteStructArray: Items must be an array of structs."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("WriteStructArray: Items array is null."));
+	}
+	P_NATIVE_END;
+
+	*(int32*)RESULT_PARAM = written;
 }
 
 int32 UDirectExcelLibrary::AppendStructFieldsToVariantMapRaw(

@@ -63,6 +63,8 @@ void UExcelWorksheet::ReserveCapacity(int32 estimatedCells)
 	{
 		return;
 	}
+	// ВНИМАНИЕ: xlnt reserve(n) резервирует число СТРОК в cell_map (не ячеек).
+	// Вызывать ОДИН раз перед экспортом. Небольшой перезаказ не вреден.
 	mData.reserve((std::size_t)estimatedCells);
 }
 
@@ -72,8 +74,6 @@ void UExcelWorksheet::WriteStringRow(int32 row, int32 startColumn, const TArray<
 	{
 		return;
 	}
-
-	mData.reserve((std::size_t)FMath::Max(row * (startColumn + values.Num()), values.Num()));
 
 	for (int32 i = 0; i < values.Num(); ++i)
 	{
@@ -88,8 +88,6 @@ void UExcelWorksheet::WriteIntRow(int32 row, int32 startColumn, const TArray<int
 		return;
 	}
 
-	mData.reserve((std::size_t)FMath::Max(row * (startColumn + values.Num()), values.Num()));
-
 	for (int32 i = 0; i < values.Num(); ++i)
 	{
 		xlnt::cell_reference cr((xlnt::column_t::index_t)(startColumn + i), (xlnt::row_t)row);
@@ -103,8 +101,6 @@ void UExcelWorksheet::WriteFloatRow(int32 row, int32 startColumn, const TArray<f
 	{
 		return;
 	}
-
-	mData.reserve((std::size_t)FMath::Max(row * (startColumn + values.Num()), values.Num()));
 
 	for (int32 i = 0; i < values.Num(); ++i)
 	{
@@ -132,7 +128,7 @@ void UExcelWorksheet::WriteStringMatrix(int32 startRow, int32 startColumn, int32
 		UE_LOG(LogDirectExcel, Warning, TEXT("WriteStringMatrix: values.Num()=%d is not divisible by columnCount=%d; trailing cells ignored."), values.Num(), columnCount);
 	}
 
-	mData.reserve((std::size_t)(rowCount * columnCount));
+	mData.reserve((std::size_t)FMath::Max(rowCount, 1));
 
 	int32 index = 0;
 	for (int32 r = 0; r < rowCount; ++r)
@@ -152,8 +148,6 @@ void UExcelWorksheet::WriteVariantRow(int32 row, int32 startColumn, const TArray
 		return;
 	}
 
-	mData.reserve((std::size_t)FMath::Max(row * (startColumn + values.Num()), values.Num()));
-
 	for (int32 i = 0; i < values.Num(); ++i)
 	{
 		DirectExcelBatch::WriteVariantToCell(mData, startColumn + i, row, values[i]);
@@ -166,8 +160,6 @@ void UExcelWorksheet::WriteVariantMap(int32 row, const TMap<int32, FExcelVariant
 	{
 		return;
 	}
-
-	mData.reserve((std::size_t)FMath::Max(row * columnValues.Num(), columnValues.Num()));
 
 	for (const TPair<int32, FExcelVariant>& pair : columnValues)
 	{
