@@ -55,31 +55,29 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDesktopPath()
 {
-	// Не используем FPaths::Combine — на Windows он часто смешивает '\' и '/'.
+	// Только ручная сборка. FPaths::Combine / ConvertRelativePathToFull на Windows
+	// возвращают '\' и дают смесь C:\Users\...\Desktop.
 	FString desktop = FPlatformMisc::GetEnvironmentVariable(TEXT("USERPROFILE"));
 	if (desktop.IsEmpty())
 	{
 		desktop = FPlatformProcess::UserDir();
 	}
 
-	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
+	// каждый '\' → '/'
+	for (TCHAR& Ch : desktop)
+	{
+		if (Ch == TCHAR('\\'))
+		{
+			Ch = TCHAR('/');
+		}
+	}
+
 	while (desktop.EndsWith(TEXT("/")))
 	{
 		desktop.LeftChopInline(1);
 	}
-	desktop += TEXT("/Desktop");
 
-	desktop = FPaths::ConvertRelativePathToFull(desktop);
-
-	// ConvertRelativePathToFull снова может вернуть '\', сносим все.
-	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
-	while (desktop.EndsWith(TEXT("/")))
-	{
-		desktop.LeftChopInline(1);
-	}
-	desktop += TEXT("/");
-
-	return desktop;
+	return desktop + TEXT("/Desktop/");
 }
 
 static FString DirectExcel_NormalizeExcelFileName(const FString& DesiredName, const FString& FallbackFromSource)

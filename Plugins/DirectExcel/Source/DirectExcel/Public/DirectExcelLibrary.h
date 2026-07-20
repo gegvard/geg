@@ -40,7 +40,7 @@ public:
 	 */
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
 		meta = (DisplayName = "Get Desktop Path",
-			ToolTip = "Desktop path with forward slashes and trailing slash, e.g. C:/Users/Name/Desktop/"))
+			ToolTip = "ALWAYS returns forward slashes with trailing slash: C:/Users/Name/Desktop/"))
 		static FString GetDesktopPath();
 
 	/**
