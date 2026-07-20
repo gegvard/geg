@@ -35,21 +35,13 @@ public:
 
 	/**
 	 * Путь к Desktop текущего пользователя.
-	 * Формат Windows: обратные слеши и обязательный '\\' в конце.
+	 * Всегда с обратными слешами и '\\' в конце.
 	 * Пример: C:\Users\Name\Desktop\
 	 */
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
 		meta = (DisplayName = "Get Desktop Path",
-			ToolTip = "Returns Desktop directory with backslashes and trailing slash."))
+			ToolTip = "Desktop path with backslashes and trailing slash, e.g. C:\\Users\\Name\\Desktop\\"))
 		static FString GetDesktopPath();
-
-	/**
-	 * Нормализует путь папки: '/' → '\\', добавляет '\\' в конце.
-	 */
-	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
-		meta = (DisplayName = "Normalize Windows Dir Path",
-			ToolTip = "Convert slashes to backslashes and ensure trailing backslash."))
-		static FString NormalizeWindowsDirPath(FString Path);
 
 	/**
 	 * Копирует Excel-файл в другой путь/папку, с опциональным переименованием.
