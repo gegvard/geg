@@ -46,11 +46,11 @@ public:
 		static bool CopyExcelFile(
 			FString SourcePath,
 			FString DestPath,
-			FString NewFileName,
-			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
-			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			UPARAM(ref) FString& OutCopiedPath,
+			FString NewFileName = TEXT(""),
 			bool bOverwrite = true,
-			FString& OutCopiedPath);
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute);
 
 	/** Перемещает Excel-файл (copy + delete source), с опциональным переименованием. */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
@@ -60,11 +60,11 @@ public:
 		static bool MoveExcelFile(
 			FString SourcePath,
 			FString DestPath,
-			FString NewFileName,
-			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
-			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			UPARAM(ref) FString& OutMovedPath,
+			FString NewFileName = TEXT(""),
 			bool bOverwrite = true,
-			FString& OutMovedPath);
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute);
 
 	/**
 	 * Явная копия с переименованием в папку.
@@ -78,10 +78,10 @@ public:
 			FString SourcePath,
 			FString DestFolder,
 			FString NewFileName,
-			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
-			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			UPARAM(ref) FString& OutCopiedPath,
 			bool bOverwrite = true,
-			FString& OutCopiedPath);
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute);
 
 public: 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet", meta = (DisplayName = "ReadStructAtRowIndex", CustomStructureParam = "OutItem"))

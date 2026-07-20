@@ -3,7 +3,6 @@
 #include "ExcelWorkbook.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
-#include "HAL/PlatformFilemanager.h"
 #include "LogTypes.h"
 #include "DataTableUtils.h"
 #include "ExcelWorksheetDataTable.h"
@@ -49,7 +48,8 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 static FString DirectExcel_NormalizeExcelFileName(const FString& DesiredName, const FString& FallbackFromSource)
 {
-	FString fileName = DesiredName.TrimStartAndEnd();
+	FString fileName = DesiredName;
+	fileName.TrimStartAndEndInline();
 	if (fileName.IsEmpty())
 	{
 		fileName = FPaths::GetCleanFilename(FallbackFromSource);
@@ -75,6 +75,9 @@ static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, c
 
 	const FString resolvedName = DirectExcel_NormalizeExcelFileName(NewFileName, OutSource);
 
+	FString trimmedNewName = NewFileName;
+	trimmedNewName.TrimStartAndEndInline();
+
 	// Если Dest — существующая папка или путь без расширения, считаем его директорией.
 	const bool bDestExistsAsDir = FPaths::DirectoryExists(OutDest);
 	const FString DestExt = FPaths::GetExtension(OutDest);
@@ -82,7 +85,7 @@ static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, c
 	{
 		OutDest = FPaths::Combine(OutDest, resolvedName);
 	}
-	else if (!NewFileName.TrimStartAndEnd().IsEmpty())
+	else if (!trimmedNewName.IsEmpty())
 	{
 		// Dest был путём к файлу, но задано новое имя — переименовать в той же папке Dest.
 		OutDest = FPaths::Combine(FPaths::GetPath(OutDest), resolvedName);
@@ -96,13 +99,13 @@ static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, c
 bool UDirectExcelLibrary::CopyExcelFile(
 	FString SourcePath,
 	FString DestPath,
+	FString& OutCopiedPath,
 	FString NewFileName,
-	ExcelFileRelateiveDir SourceRelativeDir,
-	ExcelFileRelateiveDir DestRelativeDir,
 	bool bOverwrite,
-	FString& OutCopiedPath)
+	ExcelFileRelateiveDir SourceRelativeDir,
+	ExcelFileRelateiveDir DestRelativeDir)
 {
-	OutCopiedPath.Reset();
+	OutCopiedPath.Empty();
 
 	FString sourceAbs = ToAbsolutePath(SourcePath, SourceRelativeDir);
 	FString destAbs = ToAbsolutePath(DestPath, DestRelativeDir);
@@ -126,10 +129,9 @@ bool UDirectExcelLibrary::CopyExcelFile(
 	}
 
 	const FString destDir = FPaths::GetPath(destAbs);
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	if (!destDir.IsEmpty() && !PlatformFile.DirectoryExists(*destDir))
+	if (!destDir.IsEmpty() && !FPaths::DirectoryExists(destDir))
 	{
-		if (!PlatformFile.CreateDirectoryTree(*destDir))
+		if (!IFileManager::Get().MakeDirectory(*destDir, true))
 		{
 			UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: failed to create directory: %s"), *destDir);
 			return false;
@@ -144,20 +146,20 @@ bool UDirectExcelLibrary::CopyExcelFile(
 	}
 
 	OutCopiedPath = destAbs;
-	UE_LOG(LogDirectExcel, Log, TEXT("CopyExcelFile: %s -> %s"), *sourceAbs, *destAbs);
+	UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile OK: %s -> %s"), *sourceAbs, *destAbs);
 	return true;
 }
 
 bool UDirectExcelLibrary::MoveExcelFile(
 	FString SourcePath,
 	FString DestPath,
+	FString& OutMovedPath,
 	FString NewFileName,
-	ExcelFileRelateiveDir SourceRelativeDir,
-	ExcelFileRelateiveDir DestRelativeDir,
 	bool bOverwrite,
-	FString& OutMovedPath)
+	ExcelFileRelateiveDir SourceRelativeDir,
+	ExcelFileRelateiveDir DestRelativeDir)
 {
-	OutMovedPath.Reset();
+	OutMovedPath.Empty();
 
 	FString sourceAbs = ToAbsolutePath(SourcePath, SourceRelativeDir);
 	FString destAbs = ToAbsolutePath(DestPath, DestRelativeDir);
@@ -169,7 +171,8 @@ bool UDirectExcelLibrary::MoveExcelFile(
 	}
 
 	FString copiedPath;
-	if (!CopyExcelFile(sourceAbs, destAbs, FString(), ExcelFileRelateiveDir::Absolute, ExcelFileRelateiveDir::Absolute, bOverwrite, copiedPath))
+	// destAbs уже финальный путь к файлу — NewFileName пустой, чтобы не трогать имя повторно.
+	if (!CopyExcelFile(sourceAbs, destAbs, copiedPath, FString(), bOverwrite, ExcelFileRelateiveDir::Absolute, ExcelFileRelateiveDir::Absolute))
 	{
 		return false;
 	}
@@ -181,7 +184,7 @@ bool UDirectExcelLibrary::MoveExcelFile(
 	}
 
 	OutMovedPath = copiedPath;
-	UE_LOG(LogDirectExcel, Log, TEXT("MoveExcelFile: %s -> %s"), *sourceAbs, *copiedPath);
+	UE_LOG(LogDirectExcel, Warning, TEXT("MoveExcelFile OK: %s -> %s"), *sourceAbs, *copiedPath);
 	return true;
 }
 
@@ -189,19 +192,21 @@ bool UDirectExcelLibrary::CopyExcelFileAs(
 	FString SourcePath,
 	FString DestFolder,
 	FString NewFileName,
-	ExcelFileRelateiveDir SourceRelativeDir,
-	ExcelFileRelateiveDir DestRelativeDir,
+	FString& OutCopiedPath,
 	bool bOverwrite,
-	FString& OutCopiedPath)
+	ExcelFileRelateiveDir SourceRelativeDir,
+	ExcelFileRelateiveDir DestRelativeDir)
 {
-	if (NewFileName.TrimStartAndEnd().IsEmpty())
+	FString trimmed = NewFileName;
+	trimmed.TrimStartAndEndInline();
+	if (trimmed.IsEmpty())
 	{
 		UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFileAs: NewFileName is empty."));
-		OutCopiedPath.Reset();
+		OutCopiedPath.Empty();
 		return false;
 	}
 
-	return CopyExcelFile(SourcePath, DestFolder, NewFileName, SourceRelativeDir, DestRelativeDir, bOverwrite, OutCopiedPath);
+	return CopyExcelFile(SourcePath, DestFolder, OutCopiedPath, NewFileName, bOverwrite, SourceRelativeDir, DestRelativeDir);
 }
 
 
