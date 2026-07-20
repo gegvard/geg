@@ -46,6 +46,69 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 	return FPaths::FileExists(path);
 }
 
+FString UDirectExcelLibrary::NormalizeWindowsDirPath(FString Path)
+{
+	Path.TrimStartAndEndInline();
+	if (Path.IsEmpty())
+	{
+		return Path;
+	}
+
+	Path.ReplaceInline(TEXT("/"), TEXT("\\"));
+
+	// Убрать повторяющиеся слеши, кроме начала UNC (\\server\share)
+	while (Path.ReplaceInline(TEXT("\\\\"), TEXT("\\")) > 0)
+	{
+	}
+	if (Path.StartsWith(TEXT("\\")) && !Path.StartsWith(TEXT("\\\\")))
+	{
+		// leave as-is for odd cases
+	}
+	// Restore UNC prefix if we collapsed it
+	if (Path.Len() >= 2 && Path[0] == TCHAR('\\') && Path[1] != TCHAR('\\'))
+	{
+		// not UNC
+	}
+
+	if (!Path.EndsWith(TEXT("\\")))
+	{
+		Path += TEXT("\\");
+	}
+	return Path;
+}
+
+FString UDirectExcelLibrary::GetDesktopPath()
+{
+	FString desktop;
+
+#if PLATFORM_WINDOWS
+	{
+		TCHAR winPath[MAX_PATH];
+		winPath[0] = 0;
+		if (SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_DESKTOPDIRECTORY, nullptr, SHGFP_TYPE_CURRENT, winPath)))
+		{
+			desktop = FString(winPath);
+		}
+	}
+#endif
+
+	if (desktop.IsEmpty())
+	{
+		const FString userProfile = FPlatformMisc::GetEnvironmentVariable(TEXT("USERPROFILE"));
+		if (!userProfile.IsEmpty())
+		{
+			desktop = FPaths::Combine(userProfile, TEXT("Desktop"));
+		}
+		else
+		{
+			desktop = FPaths::Combine(FPlatformProcess::UserDir(), TEXT("Desktop"));
+		}
+	}
+
+	desktop = FPaths::ConvertRelativePathToFull(desktop);
+	return NormalizeWindowsDirPath(desktop);
+}
+
 static FString DirectExcel_NormalizeExcelFileName(const FString& DesiredName, const FString& FallbackFromSource)
 {
 	FString fileName = DesiredName;

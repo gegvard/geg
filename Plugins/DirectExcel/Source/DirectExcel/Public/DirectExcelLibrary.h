@@ -34,6 +34,24 @@ public:
 		static bool DoesExcelFileExists(FString path, ExcelFileRelateiveDir relativeDir = ExcelFileRelateiveDir::Absolute);
 
 	/**
+	 * Путь к Desktop текущего пользователя.
+	 * Формат Windows: обратные слеши и обязательный '\\' в конце.
+	 * Пример: C:\Users\Name\Desktop\
+	 */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
+		meta = (DisplayName = "Get Desktop Path",
+			ToolTip = "Returns Desktop directory with backslashes and trailing slash."))
+		static FString GetDesktopPath();
+
+	/**
+	 * Нормализует путь папки: '/' → '\\', добавляет '\\' в конце.
+	 */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
+		meta = (DisplayName = "Normalize Windows Dir Path",
+			ToolTip = "Convert slashes to backslashes and ensure trailing backslash."))
+		static FString NormalizeWindowsDirPath(FString Path);
+
+	/**
 	 * Копирует Excel-файл в другой путь/папку, с опциональным переименованием.
 	 * DestPath — папка или полный путь к файлу.
 	 * NewFileName — новое имя (например "report_2026.xlsx"). Пусто = имя как у Source.
