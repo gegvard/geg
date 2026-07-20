@@ -35,7 +35,7 @@ public:
 
 	/**
 	 * Путь к Desktop текущего пользователя.
-	 * Формат: прямые слеши '/' и обязательный '/' в конце.
+	 * Всегда со слешами '/' и с '/' в конце.
 	 * Пример: C:/Users/Name/Desktop/
 	 */
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
