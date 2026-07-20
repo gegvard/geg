@@ -9,11 +9,20 @@
 #include "DataRegistrySubsystem.h"
 #include "Engine/Engine.h"
 
-/** Все пути плагина отдаём со слешем '/'. */
-static FString DirectExcel_ToForwardSlashes(FString Path)
+/** Все пути плагина: только '/' (символ 0x2F). Без FPaths::Normalize. */
+static FString DirectExcel_ToForwardSlashes(const FString& InPath)
 {
-	Path.ReplaceInline(TEXT("\\"), TEXT("/"));
-	return Path;
+	const TCHAR BackSlash = (TCHAR)92;   // '\'
+	const TCHAR FwdSlash = (TCHAR)47;    // '/'
+
+	FString Out;
+	Out.Reserve(InPath.Len() + 4);
+	for (int32 Index = 0; Index < InPath.Len(); ++Index)
+	{
+		const TCHAR Char = InPath[Index];
+		Out.AppendChar(Char == BackSlash ? FwdSlash : Char);
+	}
+	return Out;
 }
 
 FString UDirectExcelLibrary::ToAbsolutePath(FString projectReleativePath, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::Absolute*/)
@@ -55,25 +64,22 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDesktopPath()
 {
-	// Жёстко: USERPROFILE + "/Desktop/"
-	// Без FPaths::Combine и без ConvertRelativePathToFull (они на Windows дают '\')
-	FString desktop = FPlatformMisc::GetEnvironmentVariable(TEXT("USERPROFILE"));
-	if (desktop.IsEmpty())
+	// Результат ВСЕГДА вида: C:/Users/<name>/Desktop/
+	FString profile = FPlatformMisc::GetEnvironmentVariable(TEXT("USERPROFILE"));
+	if (profile.IsEmpty())
 	{
-		desktop = FPlatformProcess::UserDir();
+		profile = FPlatformProcess::UserDir();
 	}
 
-	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
-	desktop.ReplaceInline(TEXT("//"), TEXT("/"));
-
-	while (desktop.Len() > 0 && desktop.EndsWith(TEXT("/")))
+	profile = DirectExcel_ToForwardSlashes(profile);
+	while (profile.Len() > 0 && profile[profile.Len() - 1] == (TCHAR)47)
 	{
-		desktop.LeftChopInline(1);
+		profile.LeftChopInline(1);
 	}
 
-	desktop += TEXT("/Desktop/");
-	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
-	return desktop;
+	const FString result = profile + TEXT("/Desktop/");
+	UE_LOG(LogDirectExcel, Warning, TEXT("GetDesktopPath => %s"), *result);
+	return result;
 }
 
 static FString DirectExcel_NormalizeExcelFileName(const FString& DesiredName, const FString& FallbackFromSource)
