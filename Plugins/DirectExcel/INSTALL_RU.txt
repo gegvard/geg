@@ -1,13 +1,16 @@
-Установка DirectExcel (UE 4.27)
+DirectExcel 3.4.0-BATCH-20260720 (НОВАЯ ВЕРСИЯ)
 
-1. Скопируй папку DirectExcel в: YourProject/Plugins/DirectExcel
-2. Удали внутри плагина папки Binaries и Intermediate (если есть)
-3. Edit → Plugins → включи Data Registry и DirectExcel
-4. Перезапуск редактора / Rebuild C++
+Проверка что это не старое:
+  Edit → Plugins → ищи "DirectExcel Batch 3.4"
+  В BP: нода "Get DirectExcel Version" → должно вернуть 3.4.0-BATCH-20260720
+  Output Log при старте: "DirectExcel loaded: 3.4.0-BATCH-20260720"
 
-Нода Desktop:
-  DirectExcel | File → Get Desktop Path
-  Результат: C:/Users/<имя>/Desktop/
+Установка:
+1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
+2. Распакуй этот zip → папка DirectExcel в YourProject/Plugins/
+3. Удали Binaries и Intermediate если вдруг появятся
+4. ПКМ по .uproject → Generate Visual Studio project files
+5. Открой .sln → Rebuild Solution (ОБЯЗАТЕЛЬНО)
+6. Запусти UE
 
-Если путь со слешем \ — значит загружен старый DLL.
-Удали Binaries/Intermediate и пересобери.
+Без Rebuild будет старый DLL — версия не появится.

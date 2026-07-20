@@ -5,6 +5,7 @@
 #include "Modules/ModuleManager.h"
 #include "Interfaces/IPluginManager.h"
 #include "ExcelRowNameResolver.h"
+#include "LogTypes.h"
 
 #define LOCTEXT_NAMESPACE "FDirectExcelModule"
 
@@ -13,7 +14,7 @@ void FDirectExcelModule::StartupModule()
 	mRowNameResolver = MakeShareable(new FExcelRowNameResolver());
 	FDataRegistryResolverScope::RegisterGlobalResolver(mRowNameResolver);
 
-	
+	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.0-BATCH-20260720 (WriteVariantMap + Desktop fix). If you do not see this line — old DLL."));
 }
 
 void FDirectExcelModule::ShutdownModule()

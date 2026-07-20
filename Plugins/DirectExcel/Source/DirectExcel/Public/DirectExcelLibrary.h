@@ -38,6 +38,12 @@ public:
 	 * Всегда со слешами '/' и с '/' в конце.
 	 * Пример: C:/Users/Name/Desktop/
 	 */
+	/** Версия патча. Если видишь "3.4.0-BATCH-20260720" — стоит новая сборка. */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel",
+		meta = (DisplayName = "Get DirectExcel Version",
+			ToolTip = "Must return 3.4.0-BATCH-20260720 after Rebuild. If empty/old — wrong DLL."))
+		static FString GetDirectExcelVersion();
+
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
 		meta = (DisplayName = "Get Desktop Path",
 			ToolTip = "ALWAYS returns forward slashes with trailing slash: C:/Users/Name/Desktop/"))

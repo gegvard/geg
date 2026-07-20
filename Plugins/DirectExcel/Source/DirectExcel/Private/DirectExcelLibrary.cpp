@@ -62,6 +62,11 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 	return FPaths::FileExists(path);
 }
 
+FString UDirectExcelLibrary::GetDirectExcelVersion()
+{
+	return TEXT("3.4.0-BATCH-20260720");
+}
+
 FString UDirectExcelLibrary::GetDesktopPath()
 {
 	// Результат ВСЕГДА вида: C:/Users/<name>/Desktop/
@@ -78,7 +83,7 @@ FString UDirectExcelLibrary::GetDesktopPath()
 	}
 
 	const FString result = profile + TEXT("/Desktop/");
-	UE_LOG(LogDirectExcel, Warning, TEXT("GetDesktopPath => %s"), *result);
+	UE_LOG(LogDirectExcel, Warning, TEXT("[%s] GetDesktopPath => %s"), *GetDirectExcelVersion(), *result);
 	return result;
 }
 
