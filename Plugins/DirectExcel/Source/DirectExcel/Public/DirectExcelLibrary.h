@@ -33,6 +33,32 @@ public:
 	UFUNCTION(BlueprintPure, Category = "DirectExcel")
 		static bool DoesExcelFileExists(FString path, ExcelFileRelateiveDir relativeDir = ExcelFileRelateiveDir::Absolute);
 
+	/**
+	 * Копирует Excel-файл в другой путь/папку.
+	 * DestPath может быть полным путём к файлу или папке (тогда имя берётся из Source).
+	 * bOverwrite = true — перезаписать, если файл уже есть.
+	 * При необходимости создаёт папки назначения.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
+		meta = (DisplayName = "Copy Excel File",
+			ToolTip = "Copy .xlsx to another folder/path. Dest can be a file path or a directory."))
+		static bool CopyExcelFile(
+			FString SourcePath,
+			FString DestPath,
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			bool bOverwrite = true);
+
+	/** Перемещает Excel-файл (copy + delete source). */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
+		meta = (DisplayName = "Move Excel File"))
+		static bool MoveExcelFile(
+			FString SourcePath,
+			FString DestPath,
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			bool bOverwrite = true);
+
 public: 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet", meta = (DisplayName = "ReadStructAtRowIndex", CustomStructureParam = "OutItem"))
 		static bool ReadStructAtRowIndex(const UExcelWorksheet* sheet, int32 row, FTableRowBase& OutItem) { return false; }

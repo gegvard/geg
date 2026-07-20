@@ -2,6 +2,8 @@
 #include "DirectExcelLibrary.h"
 #include "ExcelWorkbook.h"
 #include "Misc/Paths.h"
+#include "HAL/FileManager.h"
+#include "HAL/PlatformFilemanager.h"
 #include "LogTypes.h"
 #include "DataTableUtils.h"
 #include "ExcelWorksheetDataTable.h"
@@ -43,6 +45,114 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 {
 	path = ToAbsolutePath(path, relativeDir);
 	return FPaths::FileExists(path);
+}
+
+static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, bool& bDestIsDirectoryHint)
+{
+	bDestIsDirectoryHint = false;
+
+	if (OutSource.IsEmpty() || OutDest.IsEmpty())
+	{
+		return false;
+	}
+
+	// Если Dest — существующая папка или путь без расширения, считаем его директорией.
+	const bool bDestExistsAsDir = FPaths::DirectoryExists(OutDest);
+	const FString DestExt = FPaths::GetExtension(OutDest);
+	if (bDestExistsAsDir || DestExt.IsEmpty())
+	{
+		bDestIsDirectoryHint = true;
+		const FString FileName = FPaths::GetCleanFilename(OutSource);
+		OutDest = FPaths::Combine(OutDest, FileName);
+	}
+
+	OutDest = FPaths::ConvertRelativePathToFull(OutDest);
+	OutSource = FPaths::ConvertRelativePathToFull(OutSource);
+	return true;
+}
+
+bool UDirectExcelLibrary::CopyExcelFile(
+	FString SourcePath,
+	FString DestPath,
+	ExcelFileRelateiveDir SourceRelativeDir /*= ExcelFileRelateiveDir::Absolute*/,
+	ExcelFileRelateiveDir DestRelativeDir /*= ExcelFileRelateiveDir::Absolute*/,
+	bool bOverwrite /*= true*/)
+{
+	FString sourceAbs = ToAbsolutePath(SourcePath, SourceRelativeDir);
+	FString destAbs = ToAbsolutePath(DestPath, DestRelativeDir);
+
+	bool bDestIsDirectoryHint = false;
+	if (!DirectExcel_ResolveCopyPaths(sourceAbs, destAbs, bDestIsDirectoryHint))
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: empty source/dest path."));
+		return false;
+	}
+
+	if (!FPaths::FileExists(sourceAbs))
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: source not found: %s"), *sourceAbs);
+		return false;
+	}
+
+	if (!bOverwrite && FPaths::FileExists(destAbs))
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: destination already exists: %s"), *destAbs);
+		return false;
+	}
+
+	const FString destDir = FPaths::GetPath(destAbs);
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	if (!destDir.IsEmpty() && !PlatformFile.DirectoryExists(*destDir))
+	{
+		if (!PlatformFile.CreateDirectoryTree(*destDir))
+		{
+			UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: failed to create directory: %s"), *destDir);
+			return false;
+		}
+	}
+
+	// UE4 IFileManager::Copy: returns COPY_OK (0) on success. 3rd arg = replace if exists.
+	const uint32 CopyResult = IFileManager::Get().Copy(*destAbs, *sourceAbs, bOverwrite);
+	if (CopyResult != COPY_OK)
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile: copy failed (%u) from %s to %s"), CopyResult, *sourceAbs, *destAbs);
+		return false;
+	}
+
+	UE_LOG(LogDirectExcel, Log, TEXT("CopyExcelFile: %s -> %s"), *sourceAbs, *destAbs);
+	return true;
+}
+
+bool UDirectExcelLibrary::MoveExcelFile(
+	FString SourcePath,
+	FString DestPath,
+	ExcelFileRelateiveDir SourceRelativeDir /*= ExcelFileRelateiveDir::Absolute*/,
+	ExcelFileRelateiveDir DestRelativeDir /*= ExcelFileRelateiveDir::Absolute*/,
+	bool bOverwrite /*= true*/)
+{
+	FString sourceAbs = ToAbsolutePath(SourcePath, SourceRelativeDir);
+	FString destAbs = ToAbsolutePath(DestPath, DestRelativeDir);
+
+	bool bDestIsDirectoryHint = false;
+	if (!DirectExcel_ResolveCopyPaths(sourceAbs, destAbs, bDestIsDirectoryHint))
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("MoveExcelFile: empty source/dest path."));
+		return false;
+	}
+
+	if (!CopyExcelFile(sourceAbs, destAbs, ExcelFileRelateiveDir::Absolute, ExcelFileRelateiveDir::Absolute, bOverwrite))
+	{
+		return false;
+	}
+
+	if (!IFileManager::Get().Delete(*sourceAbs, false, true))
+	{
+		UE_LOG(LogDirectExcel, Warning, TEXT("MoveExcelFile: copied, but failed to delete source: %s"), *sourceAbs);
+		return false;
+	}
+
+	UE_LOG(LogDirectExcel, Log, TEXT("MoveExcelFile: %s -> %s"), *sourceAbs, *destAbs);
+	return true;
 }
 
 
