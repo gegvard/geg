@@ -60,10 +60,10 @@ FString UDirectExcelLibrary::GetDesktopPath()
 	}
 
 	desktop = FPaths::ConvertRelativePathToFull(desktop);
-	desktop.ReplaceInline(TEXT("/"), TEXT("\\"));
-	if (!desktop.EndsWith(TEXT("\\")))
+	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
+	if (!desktop.EndsWith(TEXT("/")))
 	{
-		desktop += TEXT("\\");
+		desktop += TEXT("/");
 	}
 	return desktop;
 }

@@ -35,12 +35,12 @@ public:
 
 	/**
 	 * Путь к Desktop текущего пользователя.
-	 * Всегда с обратными слешами и '\\' в конце.
-	 * Пример: C:\Users\Name\Desktop\
+	 * Формат: прямые слеши '/' и обязательный '/' в конце.
+	 * Пример: C:/Users/Name/Desktop/
 	 */
 	UFUNCTION(BlueprintPure, Category = "DirectExcel|File",
 		meta = (DisplayName = "Get Desktop Path",
-			ToolTip = "Desktop path with backslashes and trailing slash, e.g. C:\\Users\\Name\\Desktop\\"))
+			ToolTip = "Desktop path with forward slashes and trailing slash, e.g. C:/Users/Name/Desktop/"))
 		static FString GetDesktopPath();
 
 	/**
