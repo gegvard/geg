@@ -34,30 +34,54 @@ public:
 		static bool DoesExcelFileExists(FString path, ExcelFileRelateiveDir relativeDir = ExcelFileRelateiveDir::Absolute);
 
 	/**
-	 * Копирует Excel-файл в другой путь/папку.
-	 * DestPath может быть полным путём к файлу или папке (тогда имя берётся из Source).
-	 * bOverwrite = true — перезаписать, если файл уже есть.
-	 * При необходимости создаёт папки назначения.
+	 * Копирует Excel-файл в другой путь/папку, с опциональным переименованием.
+	 * DestPath — папка или полный путь к файлу.
+	 * NewFileName — новое имя (например "report_2026.xlsx"). Пусто = имя как у Source.
+	 * OutCopiedPath — итоговый полный путь копии.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
 		meta = (DisplayName = "Copy Excel File",
-			ToolTip = "Copy .xlsx to another folder/path. Dest can be a file path or a directory."))
+			AutoCreateRefTerm = "OutCopiedPath",
+			ToolTip = "Copy .xlsx. Dest = folder or file path. NewFileName optional rename."))
 		static bool CopyExcelFile(
 			FString SourcePath,
 			FString DestPath,
+			FString NewFileName,
 			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
 			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
-			bool bOverwrite = true);
+			bool bOverwrite = true,
+			FString& OutCopiedPath);
 
-	/** Перемещает Excel-файл (copy + delete source). */
+	/** Перемещает Excel-файл (copy + delete source), с опциональным переименованием. */
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
-		meta = (DisplayName = "Move Excel File"))
+		meta = (DisplayName = "Move Excel File",
+			AutoCreateRefTerm = "OutMovedPath",
+			ToolTip = "Move .xlsx. Dest = folder or file path. NewFileName optional rename."))
 		static bool MoveExcelFile(
 			FString SourcePath,
 			FString DestPath,
+			FString NewFileName,
 			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
 			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
-			bool bOverwrite = true);
+			bool bOverwrite = true,
+			FString& OutMovedPath);
+
+	/**
+	 * Явная копия с переименованием в папку.
+	 * DestFolder + NewFileName → итоговый файл.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|File",
+		meta = (DisplayName = "Copy Excel File As",
+			AutoCreateRefTerm = "OutCopiedPath",
+			ToolTip = "Copy into DestFolder under NewFileName (adds .xlsx if missing)."))
+		static bool CopyExcelFileAs(
+			FString SourcePath,
+			FString DestFolder,
+			FString NewFileName,
+			ExcelFileRelateiveDir SourceRelativeDir = ExcelFileRelateiveDir::Absolute,
+			ExcelFileRelateiveDir DestRelativeDir = ExcelFileRelateiveDir::Absolute,
+			bool bOverwrite = true,
+			FString& OutCopiedPath);
 
 public: 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DirectExcel|Worksheet", meta = (DisplayName = "ReadStructAtRowIndex", CustomStructureParam = "OutItem"))
