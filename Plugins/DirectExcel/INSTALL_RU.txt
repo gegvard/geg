@@ -1,0 +1,13 @@
+Установка DirectExcel (UE 4.27)
+
+1. Скопируй папку DirectExcel в: YourProject/Plugins/DirectExcel
+2. Удали внутри плагина папки Binaries и Intermediate (если есть)
+3. Edit → Plugins → включи Data Registry и DirectExcel
+4. Перезапуск редактора / Rebuild C++
+
+Нода Desktop:
+  DirectExcel | File → Get Desktop Path
+  Результат: C:/Users/<имя>/Desktop/
+
+Если путь со слешем \ — значит загружен старый DLL.
+Удали Binaries/Intermediate и пересобери.
