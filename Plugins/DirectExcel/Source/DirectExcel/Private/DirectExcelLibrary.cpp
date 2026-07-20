@@ -9,6 +9,13 @@
 #include "DataRegistrySubsystem.h"
 #include "Engine/Engine.h"
 
+/** Все пути плагина отдаём со слешем '/'. */
+static FString DirectExcel_ToForwardSlashes(FString Path)
+{
+	Path.ReplaceInline(TEXT("\\"), TEXT("/"));
+	return Path;
+}
+
 FString UDirectExcelLibrary::ToAbsolutePath(FString projectReleativePath, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::Absolute*/)
 {
 	FString baseDir;
@@ -37,7 +44,7 @@ FString UDirectExcelLibrary::ToAbsolutePath(FString projectReleativePath, ExcelF
 	}
 	FString fullPath = FPaths::Combine(baseDir, projectReleativePath);
 	fullPath = FPaths::ConvertRelativePathToFull(fullPath);
-	return fullPath;
+	return DirectExcel_ToForwardSlashes(fullPath);
 }
 
 bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::Absolute*/)
@@ -60,7 +67,7 @@ FString UDirectExcelLibrary::GetDesktopPath()
 	}
 
 	desktop = FPaths::ConvertRelativePathToFull(desktop);
-	desktop.ReplaceInline(TEXT("\\"), TEXT("/"));
+	desktop = DirectExcel_ToForwardSlashes(desktop);
 	if (!desktop.EndsWith(TEXT("/")))
 	{
 		desktop += TEXT("/");
@@ -90,6 +97,9 @@ static FString DirectExcel_NormalizeExcelFileName(const FString& DesiredName, co
 
 static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, const FString& NewFileName)
 {
+	OutSource = DirectExcel_ToForwardSlashes(OutSource);
+	OutDest = DirectExcel_ToForwardSlashes(OutDest);
+
 	if (OutSource.IsEmpty() || OutDest.IsEmpty())
 	{
 		return false;
@@ -113,8 +123,8 @@ static bool DirectExcel_ResolveCopyPaths(FString& OutSource, FString& OutDest, c
 		OutDest = FPaths::Combine(FPaths::GetPath(OutDest), resolvedName);
 	}
 
-	OutDest = FPaths::ConvertRelativePathToFull(OutDest);
-	OutSource = FPaths::ConvertRelativePathToFull(OutSource);
+	OutDest = DirectExcel_ToForwardSlashes(FPaths::ConvertRelativePathToFull(OutDest));
+	OutSource = DirectExcel_ToForwardSlashes(FPaths::ConvertRelativePathToFull(OutSource));
 	return true;
 }
 
@@ -167,8 +177,8 @@ bool UDirectExcelLibrary::CopyExcelFile(
 		return false;
 	}
 
-	OutCopiedPath = destAbs;
-	UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile OK: %s -> %s"), *sourceAbs, *destAbs);
+	OutCopiedPath = DirectExcel_ToForwardSlashes(destAbs);
+	UE_LOG(LogDirectExcel, Warning, TEXT("CopyExcelFile OK: %s -> %s"), *sourceAbs, *OutCopiedPath);
 	return true;
 }
 
@@ -205,8 +215,8 @@ bool UDirectExcelLibrary::MoveExcelFile(
 		return false;
 	}
 
-	OutMovedPath = copiedPath;
-	UE_LOG(LogDirectExcel, Warning, TEXT("MoveExcelFile OK: %s -> %s"), *sourceAbs, *copiedPath);
+	OutMovedPath = DirectExcel_ToForwardSlashes(copiedPath);
+	UE_LOG(LogDirectExcel, Warning, TEXT("MoveExcelFile OK: %s -> %s"), *sourceAbs, *OutMovedPath);
 	return true;
 }
 
