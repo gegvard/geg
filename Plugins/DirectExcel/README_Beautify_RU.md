@@ -40,9 +40,9 @@ Create/Open Workbook → Get Sheet
 | **Write String Row** | одна строка студента = 1 вызов вместо 16 |
 | **Write String Matrix** | весь список студентов = 1 вызов (плоский массив) |
 | **Write Int/Float Row** | числовые строки |
-| **Write Variant Row** | смешанные типы плотным массивом |
-| **Write Variant Map** | разреженная строка: ключ Map = **номер колонки Excel** |
-| **Append Struct Fields To Variant Map** | struct → Map; **Start/End = номера колонок** (не индексы массива) |
+| **Write Variant At** | одна ячейка (точечно) |
+| **Copy Excel File** | скопировать `.xlsx` в другую папку/путь |
+| **Move Excel File** | переместить `.xlsx` |
 
 ### Лучший поток (колонки 1–20, payments@30, services@50)
 
