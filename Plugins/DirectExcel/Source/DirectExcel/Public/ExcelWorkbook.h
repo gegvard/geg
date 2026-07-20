@@ -160,7 +160,7 @@ private:
 		TArray<UExcelWorksheet*> mSheets;
 
 	UPROPERTY(Transient)
-		UExcelWorksheet* mActiveSheet;
+		UExcelWorksheet* mActiveSheet = nullptr;
 private:
 
 	FString mPath;

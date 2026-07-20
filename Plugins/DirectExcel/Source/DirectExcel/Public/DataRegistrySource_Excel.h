@@ -42,7 +42,7 @@ public:
 		TMap<FName, FExcelTableHeader> TableHeaders;
 protected:
 	UPROPERTY(Transient)
-		UExcelWorkbook* SourceWorkbook;
+		UExcelWorkbook* SourceWorkbook = nullptr;
 
 	/** Last time this was accessed */
 	mutable float LastAccessTime;

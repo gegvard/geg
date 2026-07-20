@@ -35,7 +35,7 @@ public:
 		bool Enabled = true;	//enabled for data source
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DirectExcel|TableHeader")
-		const UScriptStruct* RowStruct;	// == DataTable.RowStruct
+		const UScriptStruct* RowStruct = nullptr;	// == DataTable.RowStruct
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DirectExcel|TableHeader")
 		ExcelTableFormat TableFormat;	//csv table or normal

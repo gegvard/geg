@@ -1,9 +1,9 @@
-DirectExcel 3.4.0-BATCH-20260720 (НОВАЯ ВЕРСИЯ)
+DirectExcel 3.4.1-BATCH-20260720 (НОВАЯ ВЕРСИЯ)
 
 Проверка что это не старое:
   Edit → Plugins → ищи "DirectExcel Batch 3.4"
-  В BP: нода "Get DirectExcel Version" → должно вернуть 3.4.0-BATCH-20260720
-  Output Log при старте: "DirectExcel loaded: 3.4.0-BATCH-20260720"
+  В BP: нода "Get DirectExcel Version" → должно вернуть 3.4.1-BATCH-20260720
+  Output Log при старте: "DirectExcel loaded: 3.4.1-BATCH-20260720"
 
 Установка:
 1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
