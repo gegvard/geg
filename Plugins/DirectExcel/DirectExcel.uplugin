@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 345,
-	"VersionName": "3.4.5-batch",
+	"Version": 346,
+	"VersionName": "3.4.6-batch",
 	"FriendlyName": "DirectExcel Batch 3.4",
-	"Description": "DirectExcel 3.4.5-BATCH (2026-07-21): FAST Beautify (date formatting no longer scans every cell; was ~21s), Save Excel Async, on-screen [PERF], WriteStructArray. MUST Rebuild C++.",
+	"Description": "DirectExcel 3.4.6-BATCH (2026-07-21): Beautify date formatting iterates only populated cells (skip_null) — fixes ~21s ShortDates on inflated row ranges. Save Excel Async, on-screen [PERF], WriteStructArray. MUST Rebuild C++.",
 	"Category": "Other",
 	"CreatedBy": "Jianzhao Fu / batch patch",
 	"CreatedByURL": "",

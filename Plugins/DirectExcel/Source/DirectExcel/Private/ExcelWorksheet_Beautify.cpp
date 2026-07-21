@@ -7,6 +7,8 @@
 
 #include "xlnt/worksheet/worksheet.hpp"
 #include "xlnt/worksheet/column_properties.hpp"
+#include "xlnt/worksheet/range.hpp"
+#include "xlnt/worksheet/cell_vector.hpp"
 #include "xlnt/cell/cell.hpp"
 #include "xlnt/cell/cell_reference.hpp"
 #include "xlnt/styles/number_format.hpp"
@@ -196,40 +198,16 @@ void UExcelWorksheet::FormatAllDatesShort(FString dateFormat)
 	const std::string code = TCHAR_TO_UTF8(*dateFormat);
 	const xlnt::number_format nf(code);
 
-	const int32 lowCol = mData.lowest_column().index;
-	const int32 highCol = mData.highest_column().index;
-	const int32 lowRow = mData.lowest_row();
-	const int32 highRow = mData.highest_row();
-	if (highCol < lowCol || highRow < lowRow) { return; }
-
-	// ОПТИМИЗАЦИЯ: не сканируем ВЕСЬ лист (это могут быть миллионы ячеек и десятки секунд).
-	// 1) По нескольким первым строкам находим, какие колонки содержат даты.
-	const int32 sampleEnd = FMath::Min(highRow, lowRow + 25);
-	TArray<int32> dateColumns;
-	for (int32 col = lowCol; col <= highCol; ++col)
+	// ВАЖНО: перебираем ТОЛЬКО реально заполненные ячейки (skip_null=true).
+	// Прошлый вариант шёл по всему диапазону lowRow..highRow — а он бывает
+	// раздут (случайная ячейка далеко внизу) => миллионы пустых проверок => ~21с.
+	for (auto row : mData.rows(true))
 	{
-		for (int32 row = lowRow; row <= sampleEnd; ++row)
+		for (auto cell : row)
 		{
-			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
-			if (mData.has_cell(ref) && mData.cell(ref).is_date())
+			if (cell.is_date())
 			{
-				dateColumns.Add(col);
-				break;
-			}
-		}
-	}
-
-	// 2) Формат применяем ТОЛЬКО к найденным колонкам-датам.
-	for (const int32 col : dateColumns)
-	{
-		for (int32 row = lowRow; row <= highRow; ++row)
-		{
-			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
-			if (!mData.has_cell(ref)) { continue; }
-			xlnt::cell c = mData.cell(ref);
-			if (c.is_date())
-			{
-				c.number_format(nf);
+				cell.number_format(nf);
 			}
 		}
 	}

@@ -65,7 +65,7 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDirectExcelVersion()
 {
-	return TEXT("3.4.5-BATCH-20260721");
+	return TEXT("3.4.6-BATCH-20260721");
 }
 
 FString UDirectExcelLibrary::GetDesktopPath()
