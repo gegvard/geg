@@ -202,9 +202,27 @@ void UExcelWorksheet::FormatAllDatesShort(FString dateFormat)
 	const int32 highRow = mData.highest_row();
 	if (highCol < lowCol || highRow < lowRow) { return; }
 
-	for (int32 row = lowRow; row <= highRow; ++row)
+	// ОПТИМИЗАЦИЯ: не сканируем ВЕСЬ лист (это могут быть миллионы ячеек и десятки секунд).
+	// 1) По нескольким первым строкам находим, какие колонки содержат даты.
+	const int32 sampleEnd = FMath::Min(highRow, lowRow + 25);
+	TArray<int32> dateColumns;
+	for (int32 col = lowCol; col <= highCol; ++col)
 	{
-		for (int32 col = lowCol; col <= highCol; ++col)
+		for (int32 row = lowRow; row <= sampleEnd; ++row)
+		{
+			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
+			if (mData.has_cell(ref) && mData.cell(ref).is_date())
+			{
+				dateColumns.Add(col);
+				break;
+			}
+		}
+	}
+
+	// 2) Формат применяем ТОЛЬКО к найденным колонкам-датам.
+	for (const int32 col : dateColumns)
+	{
+		for (int32 row = lowRow; row <= highRow; ++row)
 		{
 			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
 			if (!mData.has_cell(ref)) { continue; }
@@ -267,7 +285,12 @@ void UExcelWorksheet::BeautifyForExport(
 	auto LogStep = [&stepSec](const TCHAR* name)
 	{
 		const double now = FPlatformTime::Seconds();
-		UE_LOG(LogDirectExcel, Warning, TEXT("[PERF]   Beautify.%s: %.1f ms"), name, (now - stepSec) * 1000.0);
+		const FString msg = FString::Printf(TEXT("[PERF]   Beautify.%s: %.1f ms"), name, (now - stepSec) * 1000.0);
+		UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Silver, msg);
+		}
 		stepSec = now;
 	};
 

@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 344,
-	"VersionName": "3.4.4-batch",
+	"Version": 345,
+	"VersionName": "3.4.5-batch",
 	"FriendlyName": "DirectExcel Batch 3.4",
-	"Description": "DirectExcel 3.4.4-BATCH (2026-07-21): Save Excel Async (background save, no game-thread freeze), on-screen [PERF] timers, WriteStructArray, reserve fix. MUST Rebuild C++.",
+	"Description": "DirectExcel 3.4.5-BATCH (2026-07-21): FAST Beautify (date formatting no longer scans every cell; was ~21s), Save Excel Async, on-screen [PERF], WriteStructArray. MUST Rebuild C++.",
 	"Category": "Other",
 	"CreatedBy": "Jianzhao Fu / batch patch",
 	"CreatedByURL": "",
