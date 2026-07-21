@@ -29,6 +29,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FExcelSaveAsyncResult OnFailed;
 
+	/** Прогресс сериализации: 0..1 (для ProgressBar). Может не вызываться на очень маленьких файлах. */
+	UPROPERTY(BlueprintAssignable)
+		FExcelSaveAsyncResult OnProgress;
+
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Workbook",
 		meta = (BlueprintInternalUseOnly = "true", DisplayName = "Save Excel Async",
 			ToolTip = "Serialize + write .xlsx on a background thread. Do not modify the workbook until On Saved/On Failed."))

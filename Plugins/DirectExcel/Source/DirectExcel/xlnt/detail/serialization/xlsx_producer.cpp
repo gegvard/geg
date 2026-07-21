@@ -35,6 +35,7 @@
 #include <detail/serialization/zstream.hpp>
 #include <xlnt/cell/cell.hpp>
 #include <xlnt/cell/hyperlink.hpp>
+#include "DirectExcelProgress.h"
 #include <xlnt/packaging/manifest.hpp>
 #include <xlnt/utils/path.hpp>
 #include <xlnt/utils/scoped_enum_hash.hpp>
@@ -2449,6 +2450,8 @@ void xlsx_producer::write_worksheet(const relationship &rel)
 
     for (auto row = first_row; row <= last_row; ++row)
     {
+        DirectExcelProgress::ReportSaveRow((uint64_t)row, (uint64_t)first_row, (uint64_t)last_row);
+
         bool any_non_null = false;
         auto first_check_row = row;
         auto last_check_row = row;

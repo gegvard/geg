@@ -6,6 +6,7 @@
 #include "LogTypes.h"
 #include "Misc/FileHelper.h"
 #include "Async/Async.h"
+#include "DirectExcelProgress.h"
 
 UExcelSaveAsyncAction* UExcelSaveAsyncAction::SaveExcelAsync(
 	UExcelWorkbook* Workbook,
@@ -43,6 +44,19 @@ void UExcelSaveAsyncAction::Activate()
 		bool bOk = false;
 		int32 byteCount = 0;
 
+		// Прогресс сериализации (0..1) -> на игровой поток -> OnProgress.
+		DirectExcelProgress::BeginSave([WeakThis](double frac)
+		{
+			const float f = (float)frac;
+			AsyncTask(ENamedThreads::GameThread, [WeakThis, f]()
+			{
+				if (WeakThis.IsValid())
+				{
+					WeakThis->OnProgress.Broadcast(f);
+				}
+			});
+		});
+
 		// Тяжёлая сериализация xlsx — в фоне.
 		std::vector<std::uint8_t> outData;
 		if (Wb->Save(outData))
@@ -51,6 +65,8 @@ void UExcelSaveAsyncAction::Activate()
 			TArrayView<uint8> view((uint8*)outData.data(), (int32)outData.size());
 			bOk = FFileHelper::SaveArrayToFile(view, *AbsPath);
 		}
+
+		DirectExcelProgress::EndSave();
 
 		const double ms = (FPlatformTime::Seconds() - startSec) * 1000.0;
 

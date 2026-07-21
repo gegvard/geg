@@ -1,7 +1,7 @@
-DirectExcel 3.5.0-BATCH-20260721
+DirectExcel 3.5.1-BATCH-20260721
 
 Проверка версии:
-  Нода "Get DirectExcel Version" → 3.5.0-BATCH-20260721
+  Нода "Get DirectExcel Version" → 3.5.1-BATCH-20260721
 
 Установка:
 1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
@@ -22,7 +22,8 @@ DirectExcel 3.5.0-BATCH-20260721
     -> Write Struct Array (sheet, startRow=2, startColumn=1, Items = массив)
     -> (payments/services при нужде: Write Variant At / Write Variant Map)
     -> Beautify For Export
-    -> Save Excel Async   (не блокирует игру; результат по пину On Saved)
+    -> Save Excel Async   (не блокирует игру; On Saved / On Failed;
+                           On Progress = 0..1 для ProgressBar)
 
 Write Struct Array — весь массив структур за один вызов.
 Beautify For Export — быстрое оформление (даты, жирный заголовок, автофильтр,
