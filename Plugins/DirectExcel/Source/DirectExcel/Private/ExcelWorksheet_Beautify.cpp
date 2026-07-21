@@ -12,7 +12,10 @@
 #include "xlnt/cell/cell.hpp"
 #include "xlnt/cell/cell_reference.hpp"
 #include "xlnt/styles/number_format.hpp"
+#include "xlnt/styles/format.hpp"
 #include "xlnt/styles/font.hpp"
+#include "xlnt/workbook/workbook.hpp"
+#include "xlnt/utils/optional.hpp"
 
 #include "Engine/Engine.h"
 
@@ -176,13 +179,17 @@ void UExcelWorksheet::SetColumnNumberFormat(int32 columnIndex, FString formatCod
 	const std::string code = TCHAR_TO_UTF8(*formatCode);
 	const xlnt::number_format nf(code);
 
+	// Один общий формат + cell.format() (O(1)), а не number_format() на каждой ячейке (O(n^2)).
+	xlnt::format sharedFormat =
+		mData.workbook().create_format().number_format(nf, xlnt::optional<bool>(true));
+
 	const int32 highRow = mData.highest_row();
 	const int32 from = FMath::Max(1, startRow);
 	for (int32 row = from; row <= highRow; ++row)
 	{
 		const xlnt::cell_reference ref((xlnt::column_t::index_t)columnIndex, (xlnt::row_t)row);
 		if (!mData.has_cell(ref)) { continue; }
-		mData.cell(ref).number_format(nf);
+		mData.cell(ref).format(sharedFormat);
 	}
 }
 
@@ -238,14 +245,20 @@ void UExcelWorksheet::FormatAllDatesShort(FString dateFormat)
 		return;
 	}
 
-	// Проход 2: формат только на ячейки колонок-дат (быстрая проверка по Set, без is_date).
+	// КЛЮЧЕВОЕ: cell.number_format() на КАЖДОЙ ячейке вызывает create_format() +
+	// линейную дедупликацию форматов => O(n^2) => ~18с на 100k+ ячеек.
+	// Создаём формат даты ОДИН раз и присваиваем ссылку через cell.format() — это O(1).
+	xlnt::format sharedDateFormat =
+		mData.workbook().create_format().number_format(nf, xlnt::optional<bool>(true));
+
+	// Проход 2: присвоить готовый формат ячейкам колонок-дат (O(1) на ячейку).
 	for (auto row : mData.rows(true))
 	{
 		for (auto cell : row)
 		{
 			if (dateColumns.Contains((int32)cell.column().index))
 			{
-				cell.number_format(nf);
+				cell.format(sharedDateFormat);
 			}
 		}
 	}
