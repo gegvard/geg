@@ -14,7 +14,7 @@ void FDirectExcelModule::StartupModule()
 	mRowNameResolver = MakeShareable(new FExcelRowNameResolver());
 	FDataRegistryResolverScope::RegisterGlobalResolver(mRowNameResolver);
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.6-BATCH-20260721 (Beautify dates iterate populated cells only). If you do not see this line — old DLL."));
+	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.7-BATCH-20260721 (Beautify dates: detect date columns once, no per-cell is_date). If you do not see this line — old DLL."));
 }
 
 void FDirectExcelModule::ShutdownModule()

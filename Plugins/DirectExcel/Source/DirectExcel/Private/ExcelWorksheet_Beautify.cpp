@@ -198,14 +198,52 @@ void UExcelWorksheet::FormatAllDatesShort(FString dateFormat)
 	const std::string code = TCHAR_TO_UTF8(*dateFormat);
 	const xlnt::number_format nf(code);
 
-	// ВАЖНО: перебираем ТОЛЬКО реально заполненные ячейки (skip_null=true).
-	// Прошлый вариант шёл по всему диапазону lowRow..highRow — а он бывает
-	// раздут (случайная ячейка далеко внизу) => миллионы пустых проверок => ~21с.
+	// ГЛАВНОЕ: cell.is_date() ДОРОГОЙ (парсит формат). На 200k+ ячеек это ~20с.
+	// Поэтому вызываем is_date() максимум по несколько раз на КОЛОНКУ (на первых
+	// строках данных), запоминаем колонки-даты, а потом просто ставим формат
+	// на ячейки этих колонок — без is_date() на каждой ячейке.
+
+	// Проход 1: определить колонки с датами по первым строкам данных (без заголовка).
+	TSet<int32> dateColumns;
+	{
+		int32 dataRowSeen = 0;
+		for (auto row : mData.rows(true))
+		{
+			++dataRowSeen;
+			if (dataRowSeen == 1)
+			{
+				continue; // первая заполненная строка — заголовок, пропускаем
+			}
+			for (auto cell : row)
+			{
+				const int32 col = (int32)cell.column().index;
+				if (dateColumns.Contains(col))
+				{
+					continue;
+				}
+				if (cell.is_date())
+				{
+					dateColumns.Add(col);
+				}
+			}
+			if (dataRowSeen >= 9)
+			{
+				break; // достаточно 8 строк данных для определения колонок
+			}
+		}
+	}
+
+	if (dateColumns.Num() == 0)
+	{
+		return;
+	}
+
+	// Проход 2: формат только на ячейки колонок-дат (быстрая проверка по Set, без is_date).
 	for (auto row : mData.rows(true))
 	{
 		for (auto cell : row)
 		{
-			if (cell.is_date())
+			if (dateColumns.Contains((int32)cell.column().index))
 			{
 				cell.number_format(nf);
 			}
