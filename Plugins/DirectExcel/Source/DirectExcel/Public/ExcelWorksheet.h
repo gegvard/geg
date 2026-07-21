@@ -623,6 +623,32 @@ public: // === Batch write / пакетная запись (производит
 		meta = (DisplayName = "Write Variant At"))
 		void WriteVariantAt(int32 row, int32 column, const FExcelVariant& value);
 
+public: // === Диагностика / Diagnostics ===
+
+	/** Номер последней заполненной строки (1-based). 0 — лист пуст. */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Diagnostics",
+		meta = (DisplayName = "Get Highest Row"))
+		int32 GetHighestRow() const;
+
+	/** Номер последней заполненной колонки (1-based). 0 — лист пуст. */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Diagnostics",
+		meta = (DisplayName = "Get Highest Column"))
+		int32 GetHighestColumn() const;
+
+	/** Реальное число НЕпустых ячеек на листе. */
+	UFUNCTION(BlueprintPure, Category = "DirectExcel|Diagnostics",
+		meta = (DisplayName = "Get Non Empty Cell Count"))
+		int32 GetNonEmptyCellCount() const;
+
+	/**
+	 * Вывести в Output Log размеры листа: строки, колонки, непустые ячейки.
+	 * Ставь до/после записи и перед Save, чтобы понять объём данных.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Diagnostics",
+		meta = (DisplayName = "Log Sheet Stats",
+			ToolTip = "Print rows/columns/non-empty cells to Output Log with a label."))
+		void LogSheetStats(FString label);
+
 public: // === Beautify / оформление для экспорта (добавлено) ===
 
 	UFUNCTION(BlueprintCallable, Category = "DirectExcel|Beautify",

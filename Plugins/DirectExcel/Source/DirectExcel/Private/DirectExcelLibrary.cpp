@@ -65,7 +65,7 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDirectExcelVersion()
 {
-	return TEXT("3.4.2-BATCH-20260720");
+	return TEXT("3.4.3-BATCH-20260721");
 }
 
 FString UDirectExcelLibrary::GetDesktopPath()
@@ -277,8 +277,12 @@ TArray<FDataRegistryId> UDirectExcelLibrary::GetAllRegistryIds(FDataRegistryType
 
 UExcelWorkbook* UDirectExcelLibrary::LoadExcel(FString path, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::Absolute*/)
 {
+	const double startSec = FPlatformTime::Seconds();
 	UExcelWorkbook* wb = NewObject<UExcelWorkbook>();
-	if (wb->Load(path, relativeDir))
+	const bool ok = wb->Load(path, relativeDir);
+	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] LoadExcel took %.1f ms (ok=%d) -> %s"),
+		(FPlatformTime::Seconds() - startSec) * 1000.0, ok ? 1 : 0, *path);
+	if (ok)
 	{
 		return wb;
 	}
@@ -293,7 +297,11 @@ bool UDirectExcelLibrary::SaveExcel(UExcelWorkbook* workbook, FString path, Exce
 		return false;
 	}
 
-	return workbook->SaveAs(path, relativeDir);
+	const double startSec = FPlatformTime::Seconds();
+	const bool ok = workbook->SaveAs(path, relativeDir);
+	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] SaveExcel took %.1f ms (ok=%d) -> %s"),
+		(FPlatformTime::Seconds() - startSec) * 1000.0, ok ? 1 : 0, *path);
+	return ok;
 }
 
 UExcelWorkbook* UDirectExcelLibrary::CreateExcel()
@@ -552,6 +560,8 @@ int32 UDirectExcelLibrary::WriteStructArrayRaw(
 		return 0;
 	}
 
+	const double writeStartSec = FPlatformTime::Seconds();
+
 	FScriptArrayHelper Helper(arrayProp, arrayAddr);
 	const int32 count = Helper.Num();
 	if (count == 0)
@@ -595,8 +605,8 @@ int32 UDirectExcelLibrary::WriteStructArrayRaw(
 		++rowsWritten;
 	}
 
-	UE_LOG(LogDirectExcel, Log, TEXT("WriteStructArray: wrote %d rows, %d columns each (from row %d, col %d)."),
-		rowsWritten, Props.Num(), startRow, startColumn);
+	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] WriteStructArray: %d rows x %d cols in %.1f ms (from row %d, col %d)."),
+		rowsWritten, Props.Num(), (FPlatformTime::Seconds() - writeStartSec) * 1000.0, startRow, startColumn);
 	return rowsWritten;
 }
 

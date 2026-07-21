@@ -130,6 +130,7 @@ void UExcelWorksheet::WriteStringMatrix(int32 startRow, int32 startColumn, int32
 
 	mData.reserve((std::size_t)FMath::Max(rowCount, 1));
 
+	const double startSec = FPlatformTime::Seconds();
 	int32 index = 0;
 	for (int32 r = 0; r < rowCount; ++r)
 	{
@@ -139,6 +140,8 @@ void UExcelWorksheet::WriteStringMatrix(int32 startRow, int32 startColumn, int32
 			DirectExcelBatch::WriteStringToCell(mData, startColumn + c, excelRow, values[index++]);
 		}
 	}
+	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] WriteStringMatrix: %d rows x %d cols in %.1f ms."),
+		rowCount, columnCount, (FPlatformTime::Seconds() - startSec) * 1000.0);
 }
 
 void UExcelWorksheet::WriteVariantRow(int32 row, int32 startColumn, const TArray<FExcelVariant>& values)
@@ -188,4 +191,63 @@ void UExcelWorksheet::WriteVariantAt(int32 row, int32 column, const FExcelVarian
 		return;
 	}
 	DirectExcelBatch::WriteVariantToCell(mData, column, row, value);
+}
+
+int32 UExcelWorksheet::GetHighestRow() const
+{
+	if (mData == nullptr) { return 0; }
+	const int32 low = mData.lowest_row();
+	const int32 high = mData.highest_row();
+	return (high < low) ? 0 : high;
+}
+
+int32 UExcelWorksheet::GetHighestColumn() const
+{
+	if (mData == nullptr) { return 0; }
+	const int32 low = mData.lowest_column().index;
+	const int32 high = mData.highest_column().index;
+	return (high < low) ? 0 : high;
+}
+
+int32 UExcelWorksheet::GetNonEmptyCellCount() const
+{
+	if (mData == nullptr) { return 0; }
+
+	const int32 lowCol = mData.lowest_column().index;
+	const int32 highCol = mData.highest_column().index;
+	const int32 lowRow = mData.lowest_row();
+	const int32 highRow = mData.highest_row();
+	if (highCol < lowCol || highRow < lowRow) { return 0; }
+
+	const int64 boundingBox = (int64)(highRow - lowRow + 1) * (int64)(highCol - lowCol + 1);
+	if (boundingBox > 5000000)
+	{
+		// Слишком большой bounding box — не сканируем поячеечно, чтобы не тормозить.
+		return -1;
+	}
+
+	int32 count = 0;
+	for (int32 row = lowRow; row <= highRow; ++row)
+	{
+		for (int32 col = lowCol; col <= highCol; ++col)
+		{
+			const xlnt::cell_reference ref((xlnt::column_t::index_t)col, (xlnt::row_t)row);
+			if (mData.has_cell(ref))
+			{
+				++count;
+			}
+		}
+	}
+	return count;
+}
+
+void UExcelWorksheet::LogSheetStats(FString label)
+{
+	const int32 rows = GetHighestRow();
+	const int32 cols = GetHighestColumn();
+	const int32 cells = GetNonEmptyCellCount();
+	UE_LOG(LogDirectExcel, Warning,
+		TEXT("[STATS] %s | highestRow=%d highestColumn=%d nonEmptyCells=%s"),
+		*label, rows, cols,
+		cells < 0 ? TEXT("(too large to count)") : *FString::FromInt(cells));
 }

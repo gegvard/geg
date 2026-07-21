@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 342,
-	"VersionName": "3.4.2-batch",
+	"Version": 343,
+	"VersionName": "3.4.3-batch",
 	"FriendlyName": "DirectExcel Batch 3.4",
-	"Description": "DirectExcel 3.4.2-BATCH (2026-07-20): WriteStructArray (1 call), fixed per-row reserve O(n^2), WriteVariantMap, GetDesktopPath fix, Copy/Move. MUST Rebuild C++.",
+	"Description": "DirectExcel 3.4.3-BATCH (2026-07-21): [PERF] timing diagnostics on Load/Write/Beautify/Save + Log Sheet Stats, WriteStructArray, reserve fix. MUST Rebuild C++.",
 	"Category": "Other",
 	"CreatedBy": "Jianzhao Fu / batch patch",
 	"CreatedByURL": "",
