@@ -1,0 +1,35 @@
+{
+	"FileVersion": 3,
+	"Version": 351,
+	"VersionName": "3.5.1-batch",
+	"FriendlyName": "DirectExcel Batch 3.5",
+	"Description": "DirectExcel 3.5.1-BATCH: Save Excel Async now reports On Progress (0..1), Load Excel Async, Write Struct Array, fast Beautify (O(1) date format), Copy/Move, Get Desktop Path fix. MUST Rebuild C++.",
+	"Category": "Other",
+	"CreatedBy": "Jianzhao Fu / batch patch",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/59f434efddeb4c93b27c8e05719664f1",
+	"SupportURL": "",
+	"EngineVersion": "4.27.0",
+	"CanContainContent": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "DirectExcel",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Android",
+				"Mac",
+				"IOS"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "DataRegistry",
+			"Enabled": true
+		}
+	]
+}
