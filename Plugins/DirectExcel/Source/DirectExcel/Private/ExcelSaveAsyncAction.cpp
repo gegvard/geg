@@ -34,6 +34,8 @@ void UExcelSaveAsyncAction::Activate()
 	UExcelWorkbook* Wb = WorkbookRef; // жив за счёт UPROPERTY WorkbookRef
 	const double startSec = FPlatformTime::Seconds();
 
+	// Держим экшен живым до завершения фоновой задачи.
+	AddToRoot();
 	TWeakObjectPtr<UExcelSaveAsyncAction> WeakThis(this);
 
 	Async(EAsyncExecution::ThreadPool, [Wb, AbsPath, startSec, WeakThis]()
@@ -68,6 +70,7 @@ void UExcelSaveAsyncAction::Activate()
 				{
 					WeakThis->OnFailed.Broadcast((float)ms);
 				}
+				WeakThis->RemoveFromRoot();
 				WeakThis->SetReadyToDestroy();
 			}
 		});

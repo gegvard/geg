@@ -175,11 +175,7 @@ bool UExcelWorkbook::Load(FString path, ExcelFileRelateiveDir relativeDir /*= Ex
 	}
 
 	std::vector<std::uint8_t> copyData;
-	copyData.reserve(fileData.Num());
-	for (uint8 val : fileData)
-	{
-		copyData.push_back(val);
-	}
+	copyData.assign(fileData.GetData(), fileData.GetData() + fileData.Num());
 
 	if (!mData->load(copyData))
 	{
@@ -187,6 +183,21 @@ bool UExcelWorkbook::Load(FString path, ExcelFileRelateiveDir relativeDir /*= Ex
 	}
 	InitSheets();
 	return true;
+}
+
+void UExcelWorkbook::AdoptLoadedWorkbook(xlnt::workbook* loadedWorkbook, const FString& path)
+{
+	if (loadedWorkbook == nullptr)
+	{
+		return;
+	}
+	if (mData != nullptr && mData != loadedWorkbook)
+	{
+		delete mData;
+	}
+	mData = loadedWorkbook;
+	mPath = path;
+	InitSheets();
 }
 
 bool UExcelWorkbook::Load(const std::vector<std::uint8_t>& data)

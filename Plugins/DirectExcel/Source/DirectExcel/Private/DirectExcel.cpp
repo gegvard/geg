@@ -14,7 +14,7 @@ void FDirectExcelModule::StartupModule()
 	mRowNameResolver = MakeShareable(new FExcelRowNameResolver());
 	FDataRegistryResolverScope::RegisterGlobalResolver(mRowNameResolver);
 
-	UE_LOG(LogDirectExcel, Log, TEXT("DirectExcel loaded: 3.4.9-BATCH-20260721"));
+	UE_LOG(LogDirectExcel, Log, TEXT("DirectExcel loaded: 3.5.0-BATCH-20260721"));
 }
 
 void FDirectExcelModule::ShutdownModule()

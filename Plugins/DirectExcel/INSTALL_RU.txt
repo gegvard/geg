@@ -1,7 +1,7 @@
-DirectExcel 3.4.9-BATCH-20260721
+DirectExcel 3.5.0-BATCH-20260721
 
 Проверка версии:
-  Нода "Get DirectExcel Version" → 3.4.9-BATCH-20260721
+  Нода "Get DirectExcel Version" → 3.5.0-BATCH-20260721
 
 Установка:
 1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
@@ -10,6 +10,11 @@ DirectExcel 3.4.9-BATCH-20260721
 4. ПКМ по .uproject → Generate Visual Studio project files
 5. Открой .sln → Rebuild Solution
 6. Запусти UE
+
+=== БЫСТРАЯ ЗАГРУЗКА ===
+  Load Excel Async(path) --> (On Loaded: Workbook) -> Get Active Sheet -> ...
+  Тяжёлый парсинг xlsx идёт в фоне, игра не фризит.
+  (Обычный Load Excel тоже есть — но он блокирует поток на время парсинга.)
 
 === БЫСТРЫЙ ЭКСПОРТ ===
   Create/Load Excel

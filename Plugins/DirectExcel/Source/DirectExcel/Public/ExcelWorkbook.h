@@ -151,6 +151,9 @@ public:	//cell
 
 	xlnt::workbook* Data() const { return mData; }
 	void SetData(xlnt::workbook* val) { mData = val; }
+
+	/** Принять уже разобранный в фоне xlnt::workbook (для Load Excel Async). Вызывать на игровом потоке. */
+	void AdoptLoadedWorkbook(xlnt::workbook* loadedWorkbook, const FString& path);
 private:
 	void InitSheets();
 	void InitActiveSheet();

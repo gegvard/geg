@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 349,
-	"VersionName": "3.4.9-batch",
-	"FriendlyName": "DirectExcel Batch 3.4",
-	"Description": "DirectExcel 3.4.9-BATCH: fast batch export (Write Struct Array), fast Beautify (shared date format O(1)), async Save Excel Async, Copy/Move, Get Desktop Path fix. MUST Rebuild C++.",
+	"Version": 350,
+	"VersionName": "3.5.0-batch",
+	"FriendlyName": "DirectExcel Batch 3.5",
+	"Description": "DirectExcel 3.5.0-BATCH: Load Excel Async (background parse) + faster load copy, Write Struct Array, fast Beautify (O(1) date format), Save Excel Async, Copy/Move, Get Desktop Path fix. MUST Rebuild C++.",
 	"Category": "Other",
 	"CreatedBy": "Jianzhao Fu / batch patch",
 	"CreatedByURL": "",
