@@ -161,6 +161,7 @@ bool UExcelWorkbook::Load(FString path, ExcelFileRelateiveDir relativeDir /*= Ex
 		return false;
 	}
 
+	const double startSec = FPlatformTime::Seconds();
 	path = UDirectExcelLibrary::ToAbsolutePath(path, relativeDir);
 	mPath = path;
 	if (mData == nullptr)
@@ -186,6 +187,14 @@ bool UExcelWorkbook::Load(FString path, ExcelFileRelateiveDir relativeDir /*= Ex
 		return false;
 	}
 	InitSheets();
+
+	const FString msg = FString::Printf(TEXT("[PERF] LoadExcel: %.1f ms (%d bytes)"),
+		(FPlatformTime::Seconds() - startSec) * 1000.0, fileData.Num());
+	UE_LOG(LogDirectExcel, Warning, TEXT("%s -> %s"), *msg, *mPath);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Cyan, msg);
+	}
 	return true;
 }
 
@@ -207,12 +216,14 @@ bool UExcelWorkbook::Load(const std::vector<std::uint8_t>& data)
 
 bool UExcelWorkbook::SaveAs(FString path, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::ProjectSavedDir*/)
 {
+	const double serializeStartSec = FPlatformTime::Seconds();
 	std::vector<uint8> outExcelData;
 	if (!mData->save(outExcelData))
 	{
 		UE_LOG(LogDirectExcel, Warning, TEXT("Failed to save to data."));
 		return false;
 	}
+	const double serializeMs = (FPlatformTime::Seconds() - serializeStartSec) * 1000.0;
 
 	path = UDirectExcelLibrary::ToAbsolutePath(path, relativeDir);
 	if (path.IsEmpty())
@@ -220,14 +231,23 @@ bool UExcelWorkbook::SaveAs(FString path, ExcelFileRelateiveDir relativeDir /*= 
 		return false;
 	}
 	//std::string pathStr = TCHAR_TO_UTF8(*path);
+	const double writeStartSec = FPlatformTime::Seconds();
 	TArrayView<uint8> dataView(outExcelData.data(), outExcelData.size());
 	if (!FFileHelper::SaveArrayToFile(dataView, *path))
 	{
 		UE_LOG(LogDirectExcel, Warning, TEXT("Failed to save to %s."), *path);
 		return false;
 	}
+	const double writeMs = (FPlatformTime::Seconds() - writeStartSec) * 1000.0;
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("Success Save dataSize:%d to %s."), outExcelData.size(), *path);
+	const FString msg = FString::Printf(
+		TEXT("[PERF] Save: serialize %.1f ms + writeFile %.1f ms = %.1f ms (%d bytes)"),
+		serializeMs, writeMs, serializeMs + writeMs, (int32)outExcelData.size());
+	UE_LOG(LogDirectExcel, Warning, TEXT("%s -> %s"), *msg, *path);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Yellow, msg);
+	}
 	return true;
 }
 

@@ -65,7 +65,7 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDirectExcelVersion()
 {
-	return TEXT("3.4.3-BATCH-20260721");
+	return TEXT("3.4.4-BATCH-20260721");
 }
 
 FString UDirectExcelLibrary::GetDesktopPath()
@@ -297,11 +297,7 @@ bool UDirectExcelLibrary::SaveExcel(UExcelWorkbook* workbook, FString path, Exce
 		return false;
 	}
 
-	const double startSec = FPlatformTime::Seconds();
-	const bool ok = workbook->SaveAs(path, relativeDir);
-	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] SaveExcel took %.1f ms (ok=%d) -> %s"),
-		(FPlatformTime::Seconds() - startSec) * 1000.0, ok ? 1 : 0, *path);
-	return ok;
+	return workbook->SaveAs(path, relativeDir);
 }
 
 UExcelWorkbook* UDirectExcelLibrary::CreateExcel()
@@ -605,8 +601,13 @@ int32 UDirectExcelLibrary::WriteStructArrayRaw(
 		++rowsWritten;
 	}
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] WriteStructArray: %d rows x %d cols in %.1f ms (from row %d, col %d)."),
-		rowsWritten, Props.Num(), (FPlatformTime::Seconds() - writeStartSec) * 1000.0, startRow, startColumn);
+	const FString msg = FString::Printf(TEXT("[PERF] WriteStructArray: %d rows x %d cols in %.1f ms"),
+		rowsWritten, Props.Num(), (FPlatformTime::Seconds() - writeStartSec) * 1000.0);
+	UE_LOG(LogDirectExcel, Warning, TEXT("%s (from row %d, col %d)."), *msg, startRow, startColumn);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Green, msg);
+	}
 	return rowsWritten;
 }
 

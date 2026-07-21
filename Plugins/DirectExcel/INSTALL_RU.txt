@@ -1,43 +1,32 @@
-DirectExcel 3.4.3-BATCH-20260721 (НОВАЯ ВЕРСИЯ + ДИАГНОСТИКА)
+DirectExcel 3.4.4-BATCH-20260721
 
-Проверка что это не старое:
-  Edit → Plugins → ищи "DirectExcel Batch 3.4"
-  В BP: нода "Get DirectExcel Version" → 3.4.3-BATCH-20260721
-  Output Log при старте: "DirectExcel loaded: 3.4.3-BATCH-20260721"
+Проверка версии:
+  Нода "Get DirectExcel Version" → 3.4.4-BATCH-20260721
+  Output Log при старте: "DirectExcel loaded: 3.4.4-BATCH-20260721"
 
 Установка:
 1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
-2. Распакуй этот zip → папка DirectExcel в YourProject/Plugins/
+2. Распакуй zip → папка DirectExcel в YourProject/Plugins/
 3. Удали Binaries и Intermediate если появятся
 4. ПКМ по .uproject → Generate Visual Studio project files
-5. Открой .sln → Rebuild Solution (ОБЯЗАТЕЛЬНО)
+5. Открой .sln → Rebuild Solution
 6. Запусти UE
 
-=== ДИАГНОСТИКА ПРОИЗВОДИТЕЛЬНОСТИ ===
-В Output Log (Window → Developer Tools → Output Log) фильтр по слову PERF.
-После одного экспорта увидишь строки вида:
-  [PERF] LoadExcel took X ms
-  [PERF] WriteStructArray: N rows x M cols in X ms
-  [PERF] Beautify.ShortDates: X ms
-  [PERF] Beautify.BoldHeader: X ms
-  [PERF] Beautify.AutoFilter: X ms
-  [PERF] Beautify.FreezeHeader: X ms
-  [PERF] Beautify.AutoFit: X ms
-  [PERF] BeautifyForExport TOTAL X ms
-  [PERF] SaveExcel took X ms
+=== ГЛАВНОЕ: сохранение без фриза ===
+Замени ноду "Save Excel" на "Save Excel Async" (категория DirectExcel|Workbook).
+У неё два выхода-пина: On Saved и On Failed (+ время в мс).
+Сериализация xlsx и запись файла идут в фоне — игра не встаёт.
+ВАЖНО: пока не пришёл On Saved/On Failed — не меняй этот Workbook.
 
-Нода "Log Sheet Stats" (категория DirectExcel|Diagnostics) печатает:
-  [STATS] <label> | highestRow=.. highestColumn=.. nonEmptyCells=..
-Ставь её перед Save — увидишь реальный объём данных.
-
-ПРИШЛИ ЭТИ СТРОКИ [PERF]/[STATS] — по ним сразу видно, ЧТО именно тормозит.
-
-=== БЫСТРЫЙ ЭКСПОРТ ===
-  Create/Load Excel
-    -> Get Active Sheet
+  Get Active Sheet
     -> Write Struct Array (sheet, startRow=2, startColumn=1, Items = массив)
-    -> Log Sheet Stats ("before save")
     -> Beautify For Export
-    -> Save Excel   (ОДИН раз в самом конце)
+    -> Save Excel Async  --> (On Saved) ...
 
-Никаких Append Struct Fields / Make Variant / Map Add на каждую строку.
+=== Замеры на экране ===
+Прямо в игре появляются жёлтые/зелёные надписи [PERF]:
+  WriteStructArray: N rows x M cols in X ms
+  SaveExcelAsync: X ms
+Плюс нода "Log Sheet Stats" печатает объём данных.
+
+Если всё ещё медленно — пришли числа с этих надписей.

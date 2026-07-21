@@ -12,6 +12,8 @@
 #include "xlnt/styles/number_format.hpp"
 #include "xlnt/styles/font.hpp"
 
+#include "Engine/Engine.h"
+
 #include <cmath>
 
 // «Видимая» длина содержимого ячейки в символах.
@@ -295,6 +297,11 @@ void UExcelWorksheet::BeautifyForExport(
 		LogStep(TEXT("AutoFit"));
 	}
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] BeautifyForExport TOTAL %.1f ms."),
+	const FString msg = FString::Printf(TEXT("[PERF] BeautifyForExport TOTAL %.1f ms"),
 		(FPlatformTime::Seconds() - beautifyStartSec) * 1000.0);
+	UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Orange, msg);
+	}
 }

@@ -5,6 +5,7 @@
 #include "ExcelWorksheet.h"
 #include "ExcelWorkbook.h"
 #include "ExcelVariant.h"
+#include "Engine/Engine.h"
 
 #include "xlnt/worksheet/worksheet.hpp"
 #include "xlnt/cell/cell.hpp"
@@ -246,8 +247,12 @@ void UExcelWorksheet::LogSheetStats(FString label)
 	const int32 rows = GetHighestRow();
 	const int32 cols = GetHighestColumn();
 	const int32 cells = GetNonEmptyCellCount();
-	UE_LOG(LogDirectExcel, Warning,
-		TEXT("[STATS] %s | highestRow=%d highestColumn=%d nonEmptyCells=%s"),
-		*label, rows, cols,
-		cells < 0 ? TEXT("(too large to count)") : *FString::FromInt(cells));
+	const FString cellsStr = cells < 0 ? TEXT("(too large to count)") : FString::FromInt(cells);
+	const FString msg = FString::Printf(
+		TEXT("[STATS] %s | rows=%d cols=%d nonEmptyCells=%s"), *label, rows, cols, *cellsStr);
+	UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::White, msg);
+	}
 }
