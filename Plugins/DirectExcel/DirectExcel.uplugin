@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 348,
-	"VersionName": "3.4.8-batch",
+	"Version": 349,
+	"VersionName": "3.4.9-batch",
 	"FriendlyName": "DirectExcel Batch 3.4",
-	"Description": "DirectExcel 3.4.8-BATCH (2026-07-21): Beautify dates use ONE shared format via cell.format() (O(1) per cell) — fixes xlnt O(n^2) number_format that took ~18-21s. Save Excel Async, on-screen [PERF], WriteStructArray. MUST Rebuild C++.",
+	"Description": "DirectExcel 3.4.9-BATCH: fast batch export (Write Struct Array), fast Beautify (shared date format O(1)), async Save Excel Async, Copy/Move, Get Desktop Path fix. MUST Rebuild C++.",
 	"Category": "Other",
 	"CreatedBy": "Jianzhao Fu / batch patch",
 	"CreatedByURL": "",

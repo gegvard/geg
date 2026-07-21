@@ -14,7 +14,7 @@ void FDirectExcelModule::StartupModule()
 	mRowNameResolver = MakeShareable(new FExcelRowNameResolver());
 	FDataRegistryResolverScope::RegisterGlobalResolver(mRowNameResolver);
 
-	UE_LOG(LogDirectExcel, Warning, TEXT("DirectExcel loaded: 3.4.8-BATCH-20260721 (Beautify dates: shared format O(1) per cell, fixes O(n^2)). If you do not see this line — old DLL."));
+	UE_LOG(LogDirectExcel, Log, TEXT("DirectExcel loaded: 3.4.9-BATCH-20260721"));
 }
 
 void FDirectExcelModule::ShutdownModule()

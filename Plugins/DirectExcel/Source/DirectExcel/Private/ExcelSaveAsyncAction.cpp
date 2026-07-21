@@ -6,7 +6,6 @@
 #include "LogTypes.h"
 #include "Misc/FileHelper.h"
 #include "Async/Async.h"
-#include "Engine/Engine.h"
 
 UExcelSaveAsyncAction* UExcelSaveAsyncAction::SaveExcelAsync(
 	UExcelWorkbook* Workbook,
@@ -56,13 +55,8 @@ void UExcelSaveAsyncAction::Activate()
 		// Возврат результата и делегаты — строго на игровом потоке.
 		AsyncTask(ENamedThreads::GameThread, [WeakThis, bOk, ms, byteCount, AbsPath]()
 		{
-			const FString msg = FString::Printf(
-				TEXT("[PERF] SaveExcelAsync: %.1f ms (%d bytes, ok=%d)"), ms, byteCount, bOk ? 1 : 0);
-			UE_LOG(LogDirectExcel, Warning, TEXT("%s -> %s"), *msg, *AbsPath);
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 12.0f, bOk ? FColor::Green : FColor::Red, msg);
-			}
+			UE_LOG(LogDirectExcel, Log, TEXT("SaveExcelAsync: %.1f ms (%d bytes, ok=%d) -> %s"),
+				ms, byteCount, bOk ? 1 : 0, *AbsPath);
 
 			if (WeakThis.IsValid())
 			{

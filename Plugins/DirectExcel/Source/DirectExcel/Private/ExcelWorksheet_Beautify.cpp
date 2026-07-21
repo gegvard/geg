@@ -17,8 +17,6 @@
 #include "xlnt/workbook/workbook.hpp"
 #include "xlnt/utils/optional.hpp"
 
-#include "Engine/Engine.h"
-
 #include <cmath>
 
 // «Видимая» длина содержимого ячейки в символах.
@@ -309,51 +307,24 @@ void UExcelWorksheet::BeautifyForExport(
 {
 	if (mData == nullptr) { return; }
 
-	const double beautifyStartSec = FPlatformTime::Seconds();
-	double stepSec = beautifyStartSec;
-	auto LogStep = [&stepSec](const TCHAR* name)
-	{
-		const double now = FPlatformTime::Seconds();
-		const FString msg = FString::Printf(TEXT("[PERF]   Beautify.%s: %.1f ms"), name, (now - stepSec) * 1000.0);
-		UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Silver, msg);
-		}
-		stepSec = now;
-	};
-
 	if (bShortDates)
 	{
 		FormatAllDatesShort(dateFormat);
-		LogStep(TEXT("ShortDates"));
 	}
 	if (bBoldHeader)
 	{
 		SetHeaderRowBold(headerRow);
-		LogStep(TEXT("BoldHeader"));
 	}
 	if (bAutoFilter)
 	{
 		EnableAutoFilter();
-		LogStep(TEXT("AutoFilter"));
 	}
 	if (bFreezeHeader)
 	{
 		FreezeHeader(headerRow + 1, 1);
-		LogStep(TEXT("FreezeHeader"));
 	}
 	if (bAutoFit)
 	{
 		AutoFitColumns(1.15f, 2.0f, MinWidth, MaxWidth, true);
-		LogStep(TEXT("AutoFit"));
-	}
-
-	const FString msg = FString::Printf(TEXT("[PERF] BeautifyForExport TOTAL %.1f ms"),
-		(FPlatformTime::Seconds() - beautifyStartSec) * 1000.0);
-	UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Orange, msg);
 	}
 }

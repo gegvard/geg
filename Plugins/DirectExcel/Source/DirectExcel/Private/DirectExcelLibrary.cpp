@@ -65,7 +65,7 @@ bool UDirectExcelLibrary::DoesExcelFileExists(FString path, ExcelFileRelateiveDi
 
 FString UDirectExcelLibrary::GetDirectExcelVersion()
 {
-	return TEXT("3.4.8-BATCH-20260721");
+	return TEXT("3.4.9-BATCH-20260721");
 }
 
 FString UDirectExcelLibrary::GetDesktopPath()
@@ -277,12 +277,8 @@ TArray<FDataRegistryId> UDirectExcelLibrary::GetAllRegistryIds(FDataRegistryType
 
 UExcelWorkbook* UDirectExcelLibrary::LoadExcel(FString path, ExcelFileRelateiveDir relativeDir /*= ExcelFileRelateiveDir::Absolute*/)
 {
-	const double startSec = FPlatformTime::Seconds();
 	UExcelWorkbook* wb = NewObject<UExcelWorkbook>();
-	const bool ok = wb->Load(path, relativeDir);
-	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] LoadExcel took %.1f ms (ok=%d) -> %s"),
-		(FPlatformTime::Seconds() - startSec) * 1000.0, ok ? 1 : 0, *path);
-	if (ok)
+	if (wb->Load(path, relativeDir))
 	{
 		return wb;
 	}
@@ -556,8 +552,6 @@ int32 UDirectExcelLibrary::WriteStructArrayRaw(
 		return 0;
 	}
 
-	const double writeStartSec = FPlatformTime::Seconds();
-
 	FScriptArrayHelper Helper(arrayProp, arrayAddr);
 	const int32 count = Helper.Num();
 	if (count == 0)
@@ -601,13 +595,8 @@ int32 UDirectExcelLibrary::WriteStructArrayRaw(
 		++rowsWritten;
 	}
 
-	const FString msg = FString::Printf(TEXT("[PERF] WriteStructArray: %d rows x %d cols in %.1f ms"),
-		rowsWritten, Props.Num(), (FPlatformTime::Seconds() - writeStartSec) * 1000.0);
-	UE_LOG(LogDirectExcel, Warning, TEXT("%s (from row %d, col %d)."), *msg, startRow, startColumn);
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::Green, msg);
-	}
+	UE_LOG(LogDirectExcel, Log, TEXT("WriteStructArray: wrote %d rows x %d cols (from row %d, col %d)."),
+		rowsWritten, Props.Num(), startRow, startColumn);
 	return rowsWritten;
 }
 

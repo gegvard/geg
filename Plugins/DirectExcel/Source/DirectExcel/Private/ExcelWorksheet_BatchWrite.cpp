@@ -5,7 +5,6 @@
 #include "ExcelWorksheet.h"
 #include "ExcelWorkbook.h"
 #include "ExcelVariant.h"
-#include "Engine/Engine.h"
 
 #include "xlnt/worksheet/worksheet.hpp"
 #include "xlnt/cell/cell.hpp"
@@ -131,7 +130,6 @@ void UExcelWorksheet::WriteStringMatrix(int32 startRow, int32 startColumn, int32
 
 	mData.reserve((std::size_t)FMath::Max(rowCount, 1));
 
-	const double startSec = FPlatformTime::Seconds();
 	int32 index = 0;
 	for (int32 r = 0; r < rowCount; ++r)
 	{
@@ -141,8 +139,6 @@ void UExcelWorksheet::WriteStringMatrix(int32 startRow, int32 startColumn, int32
 			DirectExcelBatch::WriteStringToCell(mData, startColumn + c, excelRow, values[index++]);
 		}
 	}
-	UE_LOG(LogDirectExcel, Warning, TEXT("[PERF] WriteStringMatrix: %d rows x %d cols in %.1f ms."),
-		rowCount, columnCount, (FPlatformTime::Seconds() - startSec) * 1000.0);
 }
 
 void UExcelWorksheet::WriteVariantRow(int32 row, int32 startColumn, const TArray<FExcelVariant>& values)
@@ -248,11 +244,6 @@ void UExcelWorksheet::LogSheetStats(FString label)
 	const int32 cols = GetHighestColumn();
 	const int32 cells = GetNonEmptyCellCount();
 	const FString cellsStr = cells < 0 ? TEXT("(too large to count)") : FString::FromInt(cells);
-	const FString msg = FString::Printf(
-		TEXT("[STATS] %s | rows=%d cols=%d nonEmptyCells=%s"), *label, rows, cols, *cellsStr);
-	UE_LOG(LogDirectExcel, Warning, TEXT("%s"), *msg);
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 12.0f, FColor::White, msg);
-	}
+	UE_LOG(LogDirectExcel, Log, TEXT("[STATS] %s | rows=%d cols=%d nonEmptyCells=%s"),
+		*label, rows, cols, *cellsStr);
 }

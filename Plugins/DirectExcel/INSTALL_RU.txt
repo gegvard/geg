@@ -1,8 +1,7 @@
-DirectExcel 3.4.4-BATCH-20260721
+DirectExcel 3.4.9-BATCH-20260721
 
 Проверка версии:
-  Нода "Get DirectExcel Version" → 3.4.4-BATCH-20260721
-  Output Log при старте: "DirectExcel loaded: 3.4.4-BATCH-20260721"
+  Нода "Get DirectExcel Version" → 3.4.9-BATCH-20260721
 
 Установка:
 1. ПОЛНОСТЬЮ удали YourProject/Plugins/DirectExcel
@@ -12,21 +11,18 @@ DirectExcel 3.4.4-BATCH-20260721
 5. Открой .sln → Rebuild Solution
 6. Запусти UE
 
-=== ГЛАВНОЕ: сохранение без фриза ===
-Замени ноду "Save Excel" на "Save Excel Async" (категория DirectExcel|Workbook).
-У неё два выхода-пина: On Saved и On Failed (+ время в мс).
-Сериализация xlsx и запись файла идут в фоне — игра не встаёт.
-ВАЖНО: пока не пришёл On Saved/On Failed — не меняй этот Workbook.
-
-  Get Active Sheet
+=== БЫСТРЫЙ ЭКСПОРТ ===
+  Create/Load Excel
+    -> Get Active Sheet
     -> Write Struct Array (sheet, startRow=2, startColumn=1, Items = массив)
+    -> (payments/services при нужде: Write Variant At / Write Variant Map)
     -> Beautify For Export
-    -> Save Excel Async  --> (On Saved) ...
+    -> Save Excel Async   (не блокирует игру; результат по пину On Saved)
 
-=== Замеры на экране ===
-Прямо в игре появляются жёлтые/зелёные надписи [PERF]:
-  WriteStructArray: N rows x M cols in X ms
-  SaveExcelAsync: X ms
-Плюс нода "Log Sheet Stats" печатает объём данных.
+Write Struct Array — весь массив структур за один вызов.
+Beautify For Export — быстрое оформление (даты, жирный заголовок, автофильтр,
+автоширина); форматирование дат теперь O(1) на ячейку.
+Save Excel Async — сериализация и запись файла в фоне.
 
-Если всё ещё медленно — пришли числа с этих надписей.
+Доп. ноды (DirectExcel|Diagnostics): Log Sheet Stats, Get Highest Row,
+Get Highest Column, Get Non Empty Cell Count.
